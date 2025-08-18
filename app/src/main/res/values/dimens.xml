@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    
+    <!-- Leanback dimensions -->
+    <dimen name="lb_browse_padding_start">56dp</dimen>
+    <dimen name="lb_browse_padding_end">56dp</dimen>
+    <dimen name="lb_browse_padding_top">27dp</dimen>
+    <dimen name="lb_browse_padding_bottom">27dp</dimen>
+    <dimen name="lb_browse_rows_margin_start">196dp</dimen>
+    <dimen name="lb_browse_rows_margin_top">27dp</dimen>
+    <dimen name="lb_browse_rows_fading_edge">128dp</dimen>
+    
+    <!-- Card dimensions -->
+    <dimen name="card_width">200dp</dimen>
+    <dimen name="card_height">120dp</dimen>
+    <dimen name="card_margin">8dp</dimen>
+    
+    <!-- Text sizes -->
+    <dimen name="text_size_large">24sp</dimen>
+    <dimen name="text_size_medium">18sp</dimen>
+    <dimen name="text_size_small">14sp</dimen>
+    
+    <!-- Icon sizes -->
+    <dimen name="icon_size_small">24dp</dimen>
+    <dimen name="icon_size_medium">32dp</dimen>
+    <dimen name="icon_size_large">48dp</dimen>
+</resources>

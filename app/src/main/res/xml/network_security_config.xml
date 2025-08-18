@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- 仅用于开发调试：允许所有明文流量。发布版本请改为只允许特定域名或改用HTTPS。 -->
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
+

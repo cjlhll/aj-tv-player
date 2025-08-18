@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp"
+    android:background="@color/background_color">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Android TV Player"
+        android:textSize="32sp"
+        android:textColor="@color/white"
+        android:textAlignment="center"
+        android:gravity="center"
+        android:layout_marginBottom="32dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="WebDAV视频播放器"
+        android:textSize="18sp"
+        android:textColor="@color/accent_color"
+        android:textAlignment="center"
+        android:gravity="center"
+        android:layout_marginBottom="48dp" />
+
+    <Button
+        android:id="@+id/btn_enter_home"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="进入主界面"
+        android:textSize="16sp"
+        android:backgroundTint="@color/primary_color"
+        android:textColor="@color/white"
+        android:paddingHorizontal="32dp"
+        android:paddingVertical="16dp" />
+
+</LinearLayout>

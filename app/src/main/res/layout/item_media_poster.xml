@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="150dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_margin="10dp"
+    android:focusable="true"
+    android:clickable="true"
+    android:background="@drawable/poster_item_background"
+    android:elevation="4dp">
+
+    <!-- 现代化海报容器 -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_view"
+        android:layout_width="match_parent"
+        android:layout_height="225dp"
+        android:layout_margin="4dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="@color/card_background">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- 海报图片 -->
+            <ImageView
+                android:id="@+id/iv_poster"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_video" />
+
+            <!-- 渐变遮罩 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_gravity="bottom"
+                android:background="@drawable/gradient_overlay" />
+
+            <!-- 评分标签 -->
+            <TextView
+                android:id="@+id/tv_rating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="8dp"
+                android:text="8.5"
+                android:textSize="12sp"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:background="@drawable/rating_badge_background"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:visibility="gone" />
+
+            <!-- 播放按钮 -->
+            <ImageView
+                android:id="@+id/iv_play_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_play_circle"
+                android:tint="@color/white"
+                android:alpha="0.9"
+                android:visibility="gone" />
+
+            <!-- 观看进度 -->
+            <LinearLayout
+                android:id="@+id/layout_progress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:layout_marginBottom="60dp"
+                android:orientation="vertical"
+                android:background="@drawable/progress_background"
+                android:padding="8dp"
+                android:visibility="gone">
+
+                <ProgressBar
+                    android:id="@+id/progress_bar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="4dp"
+                    android:progressTint="@color/accent_color"
+                    android:progressBackgroundTint="@color/white"
+                    android:alpha="0.8" />
+
+                <TextView
+                    android:id="@+id/tv_progress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="30%"
+                    android:textSize="10sp"
+                    android:textColor="@color/white"
+                    android:layout_marginTop="2dp" />
+
+            </LinearLayout>
+
+            <!-- 底部标题信息（常显） -->
+            <LinearLayout
+                android:id="@+id/layout_bottom_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:orientation="vertical"
+                android:padding="12dp"
+                android:alpha="1.0">
+
+                <TextView
+                    android:id="@+id/tv_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="电影标题"
+                    android:textSize="14sp"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:shadowColor="#80000000"
+                    android:shadowDx="1"
+                    android:shadowDy="1"
+                    android:shadowRadius="2" />
+
+                <TextView
+                    android:id="@+id/tv_subtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="2023 • 120分钟"
+                    android:textSize="12sp"
+                    android:textColor="#CCFFFFFF"
+                    android:layout_marginTop="4dp"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:shadowColor="#80000000"
+                    android:shadowDx="1"
+                    android:shadowDy="1"
+                    android:shadowRadius="2" />
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>

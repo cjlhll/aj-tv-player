@@ -1,0 +1,46 @@
+[
+    {
+        "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-mergeDebugResources-62:\\layout\\fragment_settings.xml",
+        "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\layout\\fragment_settings.xml"
+    },
+    {
+        "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-mergeDebugResources-62:\\layout\\item_media_poster.xml",
+        "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\layout\\item_media_poster.xml"
+    },
+    {
+        "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-mergeDebugResources-62:\\layout\\fragment_main.xml",
+        "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\layout\\fragment_main.xml"
+    },
+    {
+        "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-mergeDebugResources-62:\\layout\\fragment_webdav_connection.xml",
+        "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\layout\\fragment_webdav_connection.xml"
+    },
+    {
+        "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-mergeDebugResources-62:\\layout\\fragment_scanner.xml",
+        "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\layout\\fragment_scanner.xml"
+    },
+    {
+        "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-mergeDebugResources-62:\\layout\\fragment_home.xml",
+        "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\layout\\fragment_home.xml"
+    },
+    {
+        "merged": "com.tvplayer.webdav.app-mergeDebugResources-62:/layout/fragment_home.xml",
+        "source": "com.tvplayer.webdav.app-main-65:/layout/fragment_home.xml"
+    },
+    {
+        "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-mergeDebugResources-62:\\layout\\item_category.xml",
+        "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\layout\\item_category.xml"
+    },
+    {
+        "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-mergeDebugResources-62:\\layout\\activity_scraper.xml",
+        "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\layout\\activity_scraper.xml"
+    },
+    {
+        "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-mergeDebugResources-62:\\layout\\item_webdav_entry.xml",
+        "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\layout\\item_webdav_entry.xml"
+    },
+    {
+        "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-mergeDebugResources-62:\\layout\\activity_main.xml",
+        "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\layout\\activity_main.xml"
+    }
+]

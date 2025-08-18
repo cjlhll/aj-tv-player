@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_color"
+    android:padding="32dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <!-- 标题 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="媒体库扫描"
+            android:textSize="28sp"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:layout_marginBottom="32dp" />
+
+        <!-- 说明文字 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="扫描WebDAV服务器上的视频文件，自动获取电影和电视剧信息"
+            android:textSize="16sp"
+            android:textColor="@color/white"
+            android:alpha="0.8"
+            android:textAlignment="center"
+            android:gravity="center"
+            android:layout_marginBottom="32dp" />
+
+
+
+        <!-- 独立 Movies/TV 目录设置 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="分类目录"
+            android:textSize="18sp"
+            android:textColor="@color/accent_color"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="电影目录"
+                    android:textColor="@color/white"
+                    android:layout_marginEnd="12dp"/>
+
+                <TextView
+                    android:id="@+id/tv_movies_dir"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColor="@color/white"
+                    android:alpha="0.8"/>
+
+                <Button
+                    android:id="@+id/btn_pick_movies_dir"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="选择"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="电视剧目录"
+                    android:textColor="@color/white"
+                    android:layout_marginEnd="12dp"/>
+
+                <TextView
+                    android:id="@+id/tv_tv_dir"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColor="@color/white"
+                    android:alpha="0.8"/>
+
+                <Button
+                    android:id="@+id/btn_pick_tv_dir"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="选择"/>
+            </LinearLayout>
+        </LinearLayout>
+
+
+        <!-- 扫描控制 -->
+        <Button
+            android:id="@+id/btn_start_scan"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="开始扫描"
+            android:textSize="18sp"
+            android:backgroundTint="@color/primary_color"
+            android:textColor="@color/white"
+            android:layout_marginBottom="32dp"
+            android:enabled="false"
+            android:paddingVertical="16dp" />
+
+        <!-- 进度显示 -->
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:layout_marginBottom="16dp"
+            android:progressTint="@color/accent_color"
+            android:progressBackgroundTint="@color/surface_color"
+            android:visibility="gone"
+            android:indeterminate="true" />
+
+        <TextView
+            android:id="@+id/tv_scan_progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="14sp"
+            android:textColor="@color/accent_color"
+            android:textAlignment="center"
+            android:gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tv_scan_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="准备扫描"
+            android:textSize="16sp"
+            android:textColor="@color/white"
+            android:textAlignment="center"
+            android:gravity="center"
+            android:background="@drawable/status_background"
+            android:padding="16dp"
+            android:layout_marginBottom="32dp" />
+
+        <!-- 功能说明 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="扫描功能说明：\n\n• 自动识别视频文件格式\n• 电影使用文件名进行信息匹配\n• 电视剧使用目录名进行信息匹配\n• 支持递归扫描子目录\n• 自动获取海报和详细信息"
+            android:textSize="14sp"
+            android:textColor="@color/white"
+            android:alpha="0.7"
+            android:lineSpacingExtra="4dp" />
+
+    </LinearLayout>
+
+</ScrollView>

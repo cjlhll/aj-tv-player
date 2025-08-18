@@ -1,0 +1,214 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.tvplayer.webdav"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="21"
+9        android:targetSdkVersion="34" />
+10
+11    <!-- Network permissions -->
+12    <uses-permission android:name="android.permission.INTERNET" />
+12-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:6:5-67
+12-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:6:22-64
+13    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+13-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:7:5-79
+13-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:7:22-76
+14
+15    <!-- Storage permissions -->
+16    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+16-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:10:5-80
+16-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:10:22-77
+17    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+17-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:11:5-81
+17-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:11:22-78
+18
+19    <!-- TV features -->
+20    <uses-feature
+20-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:14:5-16:35
+21        android:name="android.software.leanback"
+21-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:15:9-49
+22        android:required="true" />
+22-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:16:9-32
+23    <uses-feature
+23-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:17:5-19:36
+24        android:name="android.hardware.touchscreen"
+24-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:18:9-52
+25        android:required="false" />
+25-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:19:9-33
+26
+27    <permission
+27-->[androidx.core:core:1.12.0] C:\Users\caojian\.gradle\caches\transforms-3\669eee2c8801e741c32a6ee27b73c23e\transformed\core-1.12.0\AndroidManifest.xml:22:5-24:47
+28        android:name="com.tvplayer.webdav.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+28-->[androidx.core:core:1.12.0] C:\Users\caojian\.gradle\caches\transforms-3\669eee2c8801e741c32a6ee27b73c23e\transformed\core-1.12.0\AndroidManifest.xml:23:9-81
+29        android:protectionLevel="signature" />
+29-->[androidx.core:core:1.12.0] C:\Users\caojian\.gradle\caches\transforms-3\669eee2c8801e741c32a6ee27b73c23e\transformed\core-1.12.0\AndroidManifest.xml:24:9-44
+30
+31    <uses-permission android:name="com.tvplayer.webdav.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+31-->[androidx.core:core:1.12.0] C:\Users\caojian\.gradle\caches\transforms-3\669eee2c8801e741c32a6ee27b73c23e\transformed\core-1.12.0\AndroidManifest.xml:26:5-97
+31-->[androidx.core:core:1.12.0] C:\Users\caojian\.gradle\caches\transforms-3\669eee2c8801e741c32a6ee27b73c23e\transformed\core-1.12.0\AndroidManifest.xml:26:22-94
+32
+33    <application
+33-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:21:5-59:19
+34        android:name="com.tvplayer.webdav.TVPlayerApplication"
+34-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:22:9-44
+35        android:allowBackup="true"
+35-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:23:9-35
+36        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+36-->[androidx.core:core:1.12.0] C:\Users\caojian\.gradle\caches\transforms-3\669eee2c8801e741c32a6ee27b73c23e\transformed\core-1.12.0\AndroidManifest.xml:28:18-86
+37        android:banner="@drawable/app_banner"
+37-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:31:9-46
+38        android:dataExtractionRules="@xml/data_extraction_rules"
+38-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:24:9-65
+39        android:debuggable="true"
+40        android:extractNativeLibs="true"
+41        android:fullBackupContent="@xml/backup_rules"
+41-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:25:9-54
+42        android:icon="@drawable/ic_launcher"
+42-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:26:9-45
+43        android:label="@string/app_name"
+43-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:27:9-41
+44        android:networkSecurityConfig="@xml/network_security_config"
+44-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:32:9-69
+45        android:roundIcon="@drawable/ic_launcher_round"
+45-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:28:9-56
+46        android:supportsRtl="true"
+46-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:29:9-35
+47        android:testOnly="true"
+48        android:theme="@style/Theme.TVPlayer"
+48-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:30:9-46
+49        android:usesCleartextTraffic="true" >
+49-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:33:9-44
+50        <activity
+50-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:36:9-45:20
+51            android:name="com.tvplayer.webdav.ui.main.MainActivity"
+51-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:37:13-49
+52            android:exported="true"
+52-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:38:13-36
+53            android:screenOrientation="landscape"
+53-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:39:13-50
+54            android:theme="@style/Theme.TVPlayer" >
+54-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:40:13-50
+55            <intent-filter>
+55-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:41:13-44:29
+56                <action android:name="android.intent.action.MAIN" />
+56-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:42:17-69
+56-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:42:25-66
+57
+58                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+58-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:43:17-86
+58-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:43:27-83
+59            </intent-filter>
+60        </activity>
+61        <activity
+61-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:47:9-51:53
+62            android:name="com.tvplayer.webdav.ui.player.PlayerActivity"
+62-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:48:13-53
+63            android:exported="false"
+63-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:49:13-37
+64            android:screenOrientation="landscape"
+64-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:50:13-50
+65            android:theme="@style/Theme.TVPlayer" />
+65-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:51:13-50
+66        <activity
+66-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:53:9-57:53
+67            android:name="com.tvplayer.webdav.ui.settings.SettingsActivity"
+67-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:54:13-57
+68            android:exported="false"
+68-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:55:13-37
+69            android:screenOrientation="landscape"
+69-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:56:13-50
+70            android:theme="@style/Theme.TVPlayer" />
+70-->E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:57:13-50
+71
+72        <provider
+72-->[androidx.emoji2:emoji2:1.2.0] C:\Users\caojian\.gradle\caches\transforms-3\fd7df2e181290c615de5c2a50432a1e9\transformed\emoji2-1.2.0\AndroidManifest.xml:24:9-32:20
+73            android:name="androidx.startup.InitializationProvider"
+73-->[androidx.emoji2:emoji2:1.2.0] C:\Users\caojian\.gradle\caches\transforms-3\fd7df2e181290c615de5c2a50432a1e9\transformed\emoji2-1.2.0\AndroidManifest.xml:25:13-67
+74            android:authorities="com.tvplayer.webdav.androidx-startup"
+74-->[androidx.emoji2:emoji2:1.2.0] C:\Users\caojian\.gradle\caches\transforms-3\fd7df2e181290c615de5c2a50432a1e9\transformed\emoji2-1.2.0\AndroidManifest.xml:26:13-68
+75            android:exported="false" >
+75-->[androidx.emoji2:emoji2:1.2.0] C:\Users\caojian\.gradle\caches\transforms-3\fd7df2e181290c615de5c2a50432a1e9\transformed\emoji2-1.2.0\AndroidManifest.xml:27:13-37
+76            <meta-data
+76-->[androidx.emoji2:emoji2:1.2.0] C:\Users\caojian\.gradle\caches\transforms-3\fd7df2e181290c615de5c2a50432a1e9\transformed\emoji2-1.2.0\AndroidManifest.xml:29:13-31:52
+77                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+77-->[androidx.emoji2:emoji2:1.2.0] C:\Users\caojian\.gradle\caches\transforms-3\fd7df2e181290c615de5c2a50432a1e9\transformed\emoji2-1.2.0\AndroidManifest.xml:30:17-75
+78                android:value="androidx.startup" />
+78-->[androidx.emoji2:emoji2:1.2.0] C:\Users\caojian\.gradle\caches\transforms-3\fd7df2e181290c615de5c2a50432a1e9\transformed\emoji2-1.2.0\AndroidManifest.xml:31:17-49
+79            <meta-data
+79-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\caojian\.gradle\caches\transforms-3\be123343bda6542eff3640927231f03a\transformed\lifecycle-process-2.7.0\AndroidManifest.xml:29:13-31:52
+80                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+80-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\caojian\.gradle\caches\transforms-3\be123343bda6542eff3640927231f03a\transformed\lifecycle-process-2.7.0\AndroidManifest.xml:30:17-78
+81                android:value="androidx.startup" />
+81-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\caojian\.gradle\caches\transforms-3\be123343bda6542eff3640927231f03a\transformed\lifecycle-process-2.7.0\AndroidManifest.xml:31:17-49
+82            <meta-data
+82-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:29:13-31:52
+83                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+83-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:30:17-85
+84                android:value="androidx.startup" />
+84-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:31:17-49
+85        </provider>
+86
+87        <uses-library
+87-->[androidx.window:window:1.0.0] C:\Users\caojian\.gradle\caches\transforms-3\a1df1e225043b2b23cdad974e9a3a3b4\transformed\window-1.0.0\AndroidManifest.xml:25:9-27:40
+88            android:name="androidx.window.extensions"
+88-->[androidx.window:window:1.0.0] C:\Users\caojian\.gradle\caches\transforms-3\a1df1e225043b2b23cdad974e9a3a3b4\transformed\window-1.0.0\AndroidManifest.xml:26:13-54
+89            android:required="false" />
+89-->[androidx.window:window:1.0.0] C:\Users\caojian\.gradle\caches\transforms-3\a1df1e225043b2b23cdad974e9a3a3b4\transformed\window-1.0.0\AndroidManifest.xml:27:13-37
+90        <uses-library
+90-->[androidx.window:window:1.0.0] C:\Users\caojian\.gradle\caches\transforms-3\a1df1e225043b2b23cdad974e9a3a3b4\transformed\window-1.0.0\AndroidManifest.xml:28:9-30:40
+91            android:name="androidx.window.sidecar"
+91-->[androidx.window:window:1.0.0] C:\Users\caojian\.gradle\caches\transforms-3\a1df1e225043b2b23cdad974e9a3a3b4\transformed\window-1.0.0\AndroidManifest.xml:29:13-51
+92            android:required="false" />
+92-->[androidx.window:window:1.0.0] C:\Users\caojian\.gradle\caches\transforms-3\a1df1e225043b2b23cdad974e9a3a3b4\transformed\window-1.0.0\AndroidManifest.xml:30:13-37
+93
+94        <service
+94-->[androidx.room:room-runtime:2.5.0] C:\Users\caojian\.gradle\caches\transforms-3\105fa33baf1a528972badf532f07535a\transformed\room-runtime-2.5.0\AndroidManifest.xml:24:9-28:63
+95            android:name="androidx.room.MultiInstanceInvalidationService"
+95-->[androidx.room:room-runtime:2.5.0] C:\Users\caojian\.gradle\caches\transforms-3\105fa33baf1a528972badf532f07535a\transformed\room-runtime-2.5.0\AndroidManifest.xml:25:13-74
+96            android:directBootAware="true"
+96-->[androidx.room:room-runtime:2.5.0] C:\Users\caojian\.gradle\caches\transforms-3\105fa33baf1a528972badf532f07535a\transformed\room-runtime-2.5.0\AndroidManifest.xml:26:13-43
+97            android:exported="false" />
+97-->[androidx.room:room-runtime:2.5.0] C:\Users\caojian\.gradle\caches\transforms-3\105fa33baf1a528972badf532f07535a\transformed\room-runtime-2.5.0\AndroidManifest.xml:27:13-37
+98
+99        <receiver
+99-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:34:9-52:20
+100            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+100-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:35:13-76
+101            android:directBootAware="false"
+101-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:36:13-44
+102            android:enabled="true"
+102-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:37:13-35
+103            android:exported="true"
+103-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:38:13-36
+104            android:permission="android.permission.DUMP" >
+104-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:39:13-57
+105            <intent-filter>
+105-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:40:13-42:29
+106                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+106-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:41:17-91
+106-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:41:25-88
+107            </intent-filter>
+108            <intent-filter>
+108-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:43:13-45:29
+109                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+109-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:44:17-85
+109-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:44:25-82
+110            </intent-filter>
+111            <intent-filter>
+111-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:46:13-48:29
+112                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+112-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:47:17-88
+112-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:47:25-85
+113            </intent-filter>
+114            <intent-filter>
+114-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:49:13-51:29
+115                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+115-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:50:17-95
+115-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\caojian\.gradle\caches\transforms-3\fadfd149bb762c9671499cd55f7482dd\transformed\profileinstaller-1.3.0\AndroidManifest.xml:50:25-92
+116            </intent-filter>
+117        </receiver>
+118    </application>
+119
+120</manifest>
