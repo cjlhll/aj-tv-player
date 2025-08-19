@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="8dp"
+    android:focusable="true"
+    android:clickable="true"
+    android:background="@drawable/actor_item_background">
+
+    <!-- 演员头像 -->
+    <FrameLayout
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginBottom="8dp">
+
+        <ImageView
+            android:id="@+id/iv_actor_avatar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_person_placeholder"
+            android:background="@drawable/circle_background" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/circle_border" />
+
+    </FrameLayout>
+
+    <!-- 演员姓名 -->
+    <TextView
+        android:id="@+id/tv_actor_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="演员姓名"
+        android:textSize="14sp"
+        android:textColor="@color/text_primary"
+        android:textAlignment="center"
+        android:layout_marginBottom="4dp"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <!-- 角色标签 -->
+    <TextView
+        android:id="@+id/tv_actor_role"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="饰"
+        android:textSize="12sp"
+        android:textColor="@color/text_secondary"
+        android:textAlignment="center"
+        android:background="@drawable/role_badge_background"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:visibility="visible" />
+
+</LinearLayout>

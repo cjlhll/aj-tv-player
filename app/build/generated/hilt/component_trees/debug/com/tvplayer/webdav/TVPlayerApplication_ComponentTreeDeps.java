@@ -21,6 +21,10 @@ import hilt_aggregated_deps._com_tvplayer_webdav_TVPlayerApplication_GeneratedIn
 import hilt_aggregated_deps._com_tvplayer_webdav_di_MediaModule;
 import hilt_aggregated_deps._com_tvplayer_webdav_di_StorageModule;
 import hilt_aggregated_deps._com_tvplayer_webdav_di_WebDAVModule;
+import hilt_aggregated_deps._com_tvplayer_webdav_ui_details_VideoDetailsActivity_GeneratedInjector;
+import hilt_aggregated_deps._com_tvplayer_webdav_ui_details_VideoDetailsFragment_GeneratedInjector;
+import hilt_aggregated_deps._com_tvplayer_webdav_ui_details_VideoDetailsViewModel_HiltModules_BindsModule;
+import hilt_aggregated_deps._com_tvplayer_webdav_ui_details_VideoDetailsViewModel_HiltModules_KeyModule;
 import hilt_aggregated_deps._com_tvplayer_webdav_ui_home_HomeFragment_GeneratedInjector;
 import hilt_aggregated_deps._com_tvplayer_webdav_ui_home_HomeViewModel_HiltModules_BindsModule;
 import hilt_aggregated_deps._com_tvplayer_webdav_ui_home_HomeViewModel_HiltModules_KeyModule;
@@ -76,6 +80,10 @@ import hilt_aggregated_deps._dagger_hilt_android_internal_modules_HiltWrapper_Ac
         _com_tvplayer_webdav_di_MediaModule.class,
         _com_tvplayer_webdav_di_StorageModule.class,
         _com_tvplayer_webdav_di_WebDAVModule.class,
+        _com_tvplayer_webdav_ui_details_VideoDetailsActivity_GeneratedInjector.class,
+        _com_tvplayer_webdav_ui_details_VideoDetailsFragment_GeneratedInjector.class,
+        _com_tvplayer_webdav_ui_details_VideoDetailsViewModel_HiltModules_BindsModule.class,
+        _com_tvplayer_webdav_ui_details_VideoDetailsViewModel_HiltModules_KeyModule.class,
         _com_tvplayer_webdav_ui_home_HomeFragment_GeneratedInjector.class,
         _com_tvplayer_webdav_ui_home_HomeViewModel_HiltModules_BindsModule.class,
         _com_tvplayer_webdav_ui_home_HomeViewModel_HiltModules_KeyModule.class,

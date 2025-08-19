@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:2:1-61:12
-INJECTED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:2:1-61:12
-INJECTED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:2:1-61:12
-INJECTED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:2:1-61:12
+ADDED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:2:1-67:12
+INJECTED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:2:1-67:12
+INJECTED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:2:1-67:12
+INJECTED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:2:1-67:12
 MERGED from [androidx.databinding:databinding-adapters:8.2.2] C:\Users\caojian\.gradle\caches\transforms-3\71034674bed3d494e8fa5eaa0a9c86fb\transformed\databinding-adapters-8.2.2\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.databinding:databinding-ktx:8.2.2] C:\Users\caojian\.gradle\caches\transforms-3\76fbcde0547b0d3b275931780f80129f\transformed\databinding-ktx-8.2.2\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.databinding:databinding-runtime:8.2.2] C:\Users\caojian\.gradle\caches\transforms-3\ab149d3ae65eb37506860af560286209\transformed\databinding-runtime-8.2.2\AndroidManifest.xml:2:1-7:12
@@ -141,8 +141,8 @@ ADDED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:17:5-19:
 	android:name
 		ADDED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:18:9-52
 application
-ADDED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:21:5-59:19
-INJECTED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:21:5-59:19
+ADDED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:21:5-65:19
+INJECTED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:21:5-65:19
 MERGED from [com.google.android.material:material:1.10.0] C:\Users\caojian\.gradle\caches\transforms-3\127a50fba098f59f5efe01000db9ca9e\transformed\material-1.10.0\AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.10.0] C:\Users\caojian\.gradle\caches\transforms-3\127a50fba098f59f5efe01000db9ca9e\transformed\material-1.10.0\AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] C:\Users\caojian\.gradle\caches\transforms-3\07eb54df695345037e385a7cccf2e065\transformed\constraintlayout-2.1.4\AndroidManifest.xml:9:5-20
@@ -233,6 +233,16 @@ ADDED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:53:9-57:
 		ADDED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:57:13-50
 	android:name
 		ADDED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:54:13-57
+activity#com.tvplayer.webdav.ui.details.VideoDetailsActivity
+ADDED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:59:9-63:53
+	android:screenOrientation
+		ADDED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:62:13-50
+	android:exported
+		ADDED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:61:13-37
+	android:theme
+		ADDED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:63:13-50
+	android:name
+		ADDED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml:60:13-60
 uses-sdk
 INJECTED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml

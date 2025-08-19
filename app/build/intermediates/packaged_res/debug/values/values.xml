@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:ns1="http://schemas.android.com/tools">
     <color name="accent_color">#FF03DAC6</color>
+    <color name="accent_color_dark">#FF018786</color>
+    <color name="accent_color_light">#FF4DDBD4</color>
     <color name="background_color">#FF0A0A0A</color>
     <color name="black">#FF000000</color>
     <color name="card_background">#FF1A1A1A</color>

@@ -181,7 +181,10 @@ class HomeFragment : Fragment() {
     }
 
     private fun onMediaItemClick(mediaItem: com.tvplayer.webdav.data.model.MediaItem) {
-        // TODO: 导航到播放器或详情页面
+        // 导航到视频详情页面
+        val intent = android.content.Intent(requireContext(), com.tvplayer.webdav.ui.details.VideoDetailsActivity::class.java)
+        intent.putExtra("media_item", mediaItem)
+        startActivity(intent)
     }
 
     private fun onPosterFocused(mediaItem: com.tvplayer.webdav.data.model.MediaItem) {

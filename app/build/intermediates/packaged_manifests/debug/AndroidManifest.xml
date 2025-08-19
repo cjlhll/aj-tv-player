@@ -68,6 +68,11 @@
             android:exported="false"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.TVPlayer" />
+        <activity
+            android:name="com.tvplayer.webdav.ui.details.VideoDetailsActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.TVPlayer" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"

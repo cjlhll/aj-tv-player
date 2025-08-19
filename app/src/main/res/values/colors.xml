@@ -19,6 +19,8 @@
     <color name="primary_color">#FF1976D2</color>
     <color name="primary_dark_color">#FF0D47A1</color>
     <color name="accent_color">#FF03DAC6</color>
+    <color name="accent_color_light">#FF4DDBD4</color>
+    <color name="accent_color_dark">#FF018786</color>
     <color name="background_color">#FF0A0A0A</color>
     <color name="surface_color">#FF1E1E1E</color>
     <color name="error_color">#FFCF6679</color>

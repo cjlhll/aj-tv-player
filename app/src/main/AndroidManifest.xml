@@ -56,6 +56,12 @@
             android:screenOrientation="landscape"
             android:theme="@style/Theme.TVPlayer" />
 
+        <activity
+            android:name=".ui.details.VideoDetailsActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.TVPlayer" />
+
     </application>
 
 </manifest>
