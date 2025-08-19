@@ -141,9 +141,10 @@ class MediaScanner @Inject constructor(
     private suspend fun scrapeMediaFile(file: WebDAVFile, modeHint: ModeHint? = null): MediaItem? {
         val name = file.name
         val path = file.path
+        val fileSize = file.size
         // 根据模式提示优化分类，减少误判
         return when (modeHint) {
-            ModeHint.MOVIE -> tmdbClient.scrapeMovie(name, path)
+            ModeHint.MOVIE -> tmdbClient.scrapeMovie(name, path, fileSize)
             ModeHint.TV -> {
                 // 对于TV模式，始终使用目录名作为剧名来获取剧集封面
                 val seriesName = file.path.trimEnd('/').substringBeforeLast('/').substringAfterLast('/')
@@ -153,7 +154,7 @@ class MediaScanner @Inject constructor(
                 val season = if (matcher != null && matcher.find()) matcher.group(1)?.toIntOrNull() else null
                 val episode = if (matcher != null) matcher.group(2)?.toIntOrNull() else null
 
-                tmdbClient.scrapeTVShow(seriesName, season, episode, path)
+                tmdbClient.scrapeTVShow(seriesName, season, episode, path, fileSize)
             }
             null -> {
                 val tvMatch = TV_SEASON_EPISODE_PATTERNS.firstOrNull { it.matcher(name).find() }
@@ -163,10 +164,10 @@ class MediaScanner @Inject constructor(
                         val season = matcher.group(1)?.toIntOrNull()
                         val episode = matcher.group(2)?.toIntOrNull()
                         val seriesName = name.substringBeforeLast('.')
-                        tmdbClient.scrapeTVShow(seriesName, season, episode, path)
+                        tmdbClient.scrapeTVShow(seriesName, season, episode, path, fileSize)
                     } else null
                 } else {
-                    tmdbClient.scrapeMovie(name, path)
+                    tmdbClient.scrapeMovie(name, path, fileSize)
                 }
             }
         }

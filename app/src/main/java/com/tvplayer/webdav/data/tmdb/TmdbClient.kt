@@ -34,9 +34,10 @@ class TmdbClient @Inject constructor(
      * 刮削电影信息
      * @param fileName 电影文件名
      * @param filePath 文件路径
+     * @param fileSize 文件大小
      * @return 刮削的媒体信息
      */
-    suspend fun scrapeMovie(fileName: String, filePath: String): MediaItem? {
+    suspend fun scrapeMovie(fileName: String, filePath: String, fileSize: Long): MediaItem? {
         return withContext(Dispatchers.IO) {
             try {
                 val year = extractYear(fileName)
@@ -70,7 +71,7 @@ class TmdbClient @Inject constructor(
                         // 确保中文标题/概述：若当前语言非中文，尝试读取 zh-CN 翻译数据
                         val finalized = ensureChineseMovie(movie.id, movieDetails)
                         Log.d(TAG, "Movie matched by candidate: $candidate")
-                        return@withContext convertTmdbMovieToMediaItem(finalized, filePath)
+                        return@withContext convertTmdbMovieToMediaItem(finalized, filePath, fileSize)
                     }
                 }
 
@@ -89,13 +90,15 @@ class TmdbClient @Inject constructor(
      * @param seasonNumber 季数
      * @param episodeNumber 集数
      * @param filePath 文件路径
+     * @param fileSize 文件大小
      * @return 刮削的媒体信息
      */
     suspend fun scrapeTVShow(
         seriesName: String,
         seasonNumber: Int?,
         episodeNumber: Int?,
-        filePath: String
+        filePath: String,
+        fileSize: Long
     ): MediaItem? {
         return withContext(Dispatchers.IO) {
             try {
@@ -154,7 +157,7 @@ class TmdbClient @Inject constructor(
 
                     return@withContext convertTmdbTVToMediaItem(
                         tvDetails, filePath, seasonNumber, episodeNumber,
-                        episodeTitle, episodeOverview, episodeRuntime
+                        episodeTitle, episodeOverview, episodeRuntime, fileSize
                     )
                 }
 
@@ -233,7 +236,7 @@ class TmdbClient @Inject constructor(
     /**
      * 转换TMDB电影数据为MediaItem
      */
-    private fun convertTmdbMovieToMediaItem(movie: TmdbMovie, filePath: String): MediaItem {
+    private fun convertTmdbMovieToMediaItem(movie: TmdbMovie, filePath: String, fileSize: Long): MediaItem {
         val releaseDate = try {
             movie.releaseDate?.let { dateFormat.parse(it) }
         } catch (e: Exception) {
@@ -252,6 +255,7 @@ class TmdbClient @Inject constructor(
             duration = (movie.runtime ?: 0) * 60L, // 转换为秒
             mediaType = MediaType.MOVIE,
             filePath = filePath,
+            fileSize = fileSize,
             genre = movie.genres?.map { it.name } ?: emptyList()
         )
     }
@@ -266,7 +270,8 @@ class TmdbClient @Inject constructor(
         episodeNumber: Int?,
         episodeTitle: String?,
         episodeOverview: String?,
-        episodeRuntime: Long
+        episodeRuntime: Long,
+        fileSize: Long
     ): MediaItem {
         val releaseDate = try {
             tvShow.firstAirDate?.let { dateFormat.parse(it) }
@@ -286,6 +291,7 @@ class TmdbClient @Inject constructor(
             duration = episodeRuntime,
             mediaType = MediaType.TV_EPISODE,
             filePath = filePath,
+            fileSize = fileSize,
             seasonNumber = seasonNumber,
             episodeNumber = episodeNumber,
             seriesId = "tv_${tvShow.id}",
