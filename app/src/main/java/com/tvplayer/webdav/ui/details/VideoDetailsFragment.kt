@@ -245,18 +245,74 @@ class VideoDetailsFragment : Fragment() {
         // 设置返回顶部按钮焦点效果（如果存在）
         btnBackToTop?.setOnFocusChangeListener { view, hasFocus ->
             if (hasFocus) {
+                // 获取焦点时的动画：放大并增强阴影效果
                 view.animate()
-                    .scaleX(1.05f)
-                    .scaleY(1.05f)
-                    .setDuration(200)
+                    .scaleX(1.08f)
+                    .scaleY(1.08f)
+                    .translationY(-2f)
+                    .setDuration(250)
+                    .setInterpolator(android.view.animation.OvershootInterpolator(0.8f))
+                    .withStartAction {
+                        // 添加轻微的透明度变化
+                        view.alpha = 0.9f
+                        view.animate().alpha(1.0f).setDuration(150).start()
+                    }
                     .start()
             } else {
+                // 失去焦点时的动画：平滑恢复原状
                 view.animate()
                     .scaleX(1.0f)
                     .scaleY(1.0f)
+                    .translationY(0f)
                     .setDuration(200)
+                    .setInterpolator(android.view.animation.DecelerateInterpolator(1.2f))
                     .start()
             }
+        }
+        
+        // 设置返回顶部按钮点击效果（如果存在）
+        btnBackToTop?.setOnTouchListener { view, event ->
+            when (event.action) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    // 按下时的反馈动画
+                    view.animate()
+                        .scaleX(0.95f)
+                        .scaleY(0.95f)
+                        .setDuration(100)
+                        .start()
+                    false
+                }
+                android.view.MotionEvent.ACTION_UP, 
+                android.view.MotionEvent.ACTION_CANCEL -> {
+                    // 释放时的恢复动画
+                    view.animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .setDuration(150)
+                        .setInterpolator(android.view.animation.OvershootInterpolator(1.5f))
+                        .start()
+                    false
+                }
+                else -> false
+            }
+        }
+        
+        // 设置返回顶部按钮点击事件（如果存在）
+        btnBackToTop?.setOnClickListener {
+            // 滚动到顶部的动画
+            scrollView.smoothScrollTo(0, 0)
+            
+            // 添加视觉反馈
+            it.animate()
+                .rotation(360f)
+                .setDuration(600)
+                .withEndAction {
+                    it.rotation = 0f
+                }
+                .start()
+                
+            // 显示提示信息
+            android.widget.Toast.makeText(context, "已返回顶部", android.widget.Toast.LENGTH_SHORT).show()
         }
 
 
@@ -269,7 +325,18 @@ class VideoDetailsFragment : Fragment() {
     }
 
     private fun observeViewModel() {
-        // TODO: 观察ViewModel的数据变化
+        // 观察演员数据变化
+        viewModel.actors.observe(viewLifecycleOwner) { actors ->
+            setupActors(actors)
+        }
+        
+        // 观察媒体项目数据变化
+        viewModel.mediaItem.observe(viewLifecycleOwner) { updatedMediaItem ->
+            updatedMediaItem?.let {
+                // 更新UI显示的媒体项目信息
+                updateMediaItemDisplay(it)
+            }
+        }
     }
 
     private fun startPlayback() {
@@ -282,25 +349,104 @@ class VideoDetailsFragment : Fragment() {
     }
 
     private fun setupActorsIfAvailable() {
+        // 这个方法现在只初始化RecyclerView，不设置数据
+        // 数据将通过ViewModel的LiveData来更新
         rvActors?.let { recyclerView ->
-            // 创建示例演员数据（实际应用中应该从API或数据库获取）
-            val actors = listOf(
-                Actor("1", "易小星", "导演", null, true),
-                Actor("2", "常远", "饰", null, false),
-                Actor("3", "邓家佳", "饰", null, false),
-                Actor("4", "王耀庆", "饰", null, false),
-                Actor("5", "田雨", "饰", null, false),
-                Actor("6", "于洋", "饰", null, false),
-                Actor("7", "李宗恒", "饰", null, false)
-            )
-            
             // 设置RecyclerView
             recyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-            val actorAdapter = ActorAdapter(actors) { actor ->
+            // 初始设置为空列表
+            val actorAdapter = ActorAdapter(emptyList()) { actor ->
                 // 处理演员点击事件
                 android.widget.Toast.makeText(context, "点击了: ${actor.name}", android.widget.Toast.LENGTH_SHORT).show()
             }
             recyclerView.adapter = actorAdapter
+        }
+    }
+    
+    private fun setupActors(actors: List<Actor>) {
+        rvActors?.let { recyclerView ->
+            val adapter = recyclerView.adapter as? ActorAdapter
+            if (adapter != null) {
+                // 更新现有适配器的数据
+                adapter.updateActors(actors)
+            } else {
+                // 创建新的适配器
+                recyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+                val actorAdapter = ActorAdapter(actors) { actor ->
+                    // 处理演员点击事件
+                    android.widget.Toast.makeText(context, "点击了: ${actor.name}", android.widget.Toast.LENGTH_SHORT).show()
+                }
+                recyclerView.adapter = actorAdapter
+            }
+        }
+    }
+    
+    private fun updateMediaItemDisplay(updatedMediaItem: MediaItem) {
+        // 更新标题
+        tvTitle.text = updatedMediaItem.getDisplayTitle()
+        
+        // 更新评分
+        if (updatedMediaItem.rating > 0) {
+            tvRating.text = String.format("%.1f", updatedMediaItem.rating)
+            tvRating.visibility = View.VISIBLE
+        } else {
+            tvRating.visibility = View.GONE
+        }
+        
+        // 更新年份
+        updatedMediaItem.releaseDate?.let { date ->
+            val formatter = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+            tvYear.text = formatter.format(date)
+        } ?: run {
+            tvYear.text = "未知日期"
+        }
+        
+        // 更新时长
+        if (updatedMediaItem.duration > 0) {
+            val hours = updatedMediaItem.duration / 3600
+            val minutes = (updatedMediaItem.duration % 3600) / 60
+            tvDuration.text = if (hours > 0) {
+                "${hours}小时${minutes}分钟"
+            } else {
+                "${minutes}分钟"
+            }
+        } else {
+            tvDuration.visibility = View.GONE
+        }
+        
+        // 更新类型
+        if (updatedMediaItem.genre.isNotEmpty()) {
+            tvGenre.text = updatedMediaItem.genre.joinToString(" · ")
+        } else {
+            tvGenre.text = when (updatedMediaItem.mediaType) {
+                com.tvplayer.webdav.data.model.MediaType.MOVIE -> "电影"
+                com.tvplayer.webdav.data.model.MediaType.TV_EPISODE -> "电视剧"
+                com.tvplayer.webdav.data.model.MediaType.TV_SERIES -> "电视剧"
+                else -> "视频"
+            }
+        }
+        
+        // 更新简介
+        if (!updatedMediaItem.overview.isNullOrEmpty()) {
+            tvOverview.text = updatedMediaItem.overview
+        } else {
+            tvOverview.text = "暂无简介"
+        }
+        
+        // 更新背景图片
+        val backdropUrl = updatedMediaItem.backdropPath ?: updatedMediaItem.posterPath
+        if (!backdropUrl.isNullOrEmpty()) {
+            try {
+                com.bumptech.glide.Glide.with(this)
+                    .load(backdropUrl)
+                    .centerCrop()
+                    .into(ivBackdrop)
+            } catch (e: Exception) {
+                // 加载失败时使用默认图片
+                ivBackdrop.setImageResource(R.drawable.ic_video)
+            }
+        } else {
+            ivBackdrop.setImageResource(R.drawable.ic_video)
         }
     }
 

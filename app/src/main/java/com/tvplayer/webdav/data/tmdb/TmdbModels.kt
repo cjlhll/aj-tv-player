@@ -187,6 +187,51 @@ data class TmdbImageConfiguration(
  )
 
 /**
+ * 演员信息
+ */
+data class TmdbCast(
+    val id: Int,
+    val name: String,
+    @SerializedName("character")
+    val character: String,
+    @SerializedName("profile_path")
+    val profilePath: String?,
+    val order: Int
+)
+
+/**
+ * 电影演员响应
+ */
+data class TmdbMovieCastResponse(
+    val id: Int,
+    val cast: List<TmdbCast>,
+    val crew: List<TmdbCrew>
+)
+
+/**
+ * 电视剧演员响应
+ */
+data class TmdbTVCastResponse(
+    val id: Int,
+    val cast: List<TmdbCast>,
+    val crew: List<TmdbCrew>
+)
+
+/**
+ * 工作人员信息
+ */
+data class TmdbCrew(
+    val id: Int,
+    val name: String,
+    @SerializedName("job")
+    val job: String,
+    @SerializedName("department")
+    val department: String,
+    @SerializedName("profile_path")
+    val profilePath: String?
+)
+
+/**
  * 错误响应
  */
 data class TmdbErrorResponse(

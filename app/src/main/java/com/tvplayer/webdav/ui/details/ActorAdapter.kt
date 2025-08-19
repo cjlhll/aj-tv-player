@@ -13,7 +13,7 @@ import com.tvplayer.webdav.data.model.Actor
  * 演员列表适配器
  */
 class ActorAdapter(
-    private val actors: List<Actor>,
+    private var actors: List<Actor>,
     private val onActorClick: (Actor) -> Unit
 ) : RecyclerView.Adapter<ActorAdapter.ActorViewHolder>() {
 
@@ -28,6 +28,14 @@ class ActorAdapter(
     }
 
     override fun getItemCount(): Int = actors.size
+    
+    /**
+     * 更新演员数据
+     */
+    fun updateActors(newActors: List<Actor>) {
+        actors = newActors
+        notifyDataSetChanged()
+    }
 
     inner class ActorViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val ivActorAvatar: ImageView = itemView.findViewById(R.id.iv_actor_avatar)

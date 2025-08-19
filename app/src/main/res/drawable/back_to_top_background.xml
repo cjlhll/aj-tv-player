@@ -1,23 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 焦点状态 - 增强视觉效果 -->
     <item android:state_focused="true">
-        <shape android:shape="rectangle">
-            <solid android:color="@color/card_background_focused" />
-            <corners android:radius="20dp" />
-            <stroke android:width="2dp" android:color="@color/accent_color" />
-        </shape>
+        <layer-list>
+            <!-- 阴影层 -->
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="#1A000000" />
+                    <corners android:radius="24dp" />
+                </shape>
+            </item>
+            <!-- 主体层 -->
+            <item android:bottom="2dp" android:left="2dp" android:right="2dp" android:top="2dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/card_background_focused" />
+                    <corners android:radius="22dp" />
+                    <stroke android:width="2.5dp" android:color="@color/accent_color" />
+                    <!-- 添加渐变效果 -->
+                    <gradient 
+                        android:startColor="@color/card_background_focused"
+                        android:endColor="#1E1E1E"
+                        android:angle="135" />
+                </shape>
+            </item>
+        </layer-list>
     </item>
+    
+    <!-- 按下状态 - 增强反馈 -->
     <item android:state_pressed="true">
-        <shape android:shape="rectangle">
-            <solid android:color="@color/card_background_pressed" />
-            <corners android:radius="20dp" />
-        </shape>
+        <layer-list>
+            <!-- 阴影层 -->
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="#0D000000" />
+                    <corners android:radius="24dp" />
+                </shape>
+            </item>
+            <!-- 主体层 -->
+            <item android:bottom="1dp" android:left="1dp" android:right="1dp" android:top="1dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/card_background_pressed" />
+                    <corners android:radius="22dp" />
+                    <stroke android:width="1.5dp" android:color="@color/accent_color" />
+                    <!-- 添加渐变效果 -->
+                    <gradient 
+                        android:startColor="@color/card_background_pressed"
+                        android:endColor="#2A2A2A"
+                        android:angle="135" />
+                </shape>
+            </item>
+        </layer-list>
     </item>
+    
+    <!-- 默认状态 - 现代化设计 -->
     <item>
-        <shape android:shape="rectangle">
-            <solid android:color="@color/card_background" />
-            <corners android:radius="20dp" />
-            <stroke android:width="1dp" android:color="@color/card_border" />
-        </shape>
+        <layer-list>
+            <!-- 阴影层 -->
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="#0A000000" />
+                    <corners android:radius="24dp" />
+                </shape>
+            </item>
+            <!-- 主体层 -->
+            <item android:bottom="1dp" android:left="1dp" android:right="1dp" android:top="1dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/card_background" />
+                    <corners android:radius="22dp" />
+                    <stroke android:width="1dp" android:color="@color/card_border" />
+                    <!-- 添加渐变效果 -->
+                    <gradient 
+                        android:startColor="@color/card_background"
+                        android:endColor="#252525"
+                        android:angle="135" />
+                </shape>
+            </item>
+        </layer-list>
     </item>
 </selector>

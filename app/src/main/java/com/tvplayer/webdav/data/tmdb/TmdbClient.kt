@@ -350,4 +350,125 @@ class TmdbClient @Inject constructor(
     fun getFullImageUrl(imagePath: String?, size: String = TmdbApiService.POSTER_SIZE_W500): String? {
         return imagePath?.let { "${TmdbApiService.IMAGE_BASE_URL}$size$it" }
     }
+
+    /**
+     * 获取电影详细信息（包括演员）
+     * @param movieId 电影ID
+     * @return 电影详细信息
+     */
+    suspend fun getMovieDetailsWithCast(movieId: Int): Pair<TmdbMovie, List<TmdbCast>>? {
+        return withContext(Dispatchers.IO) {
+            try {
+                // 获取电影详情
+                val detailsResponse = apiService.getMovieDetails(movieId, API_KEY)
+                val movieDetails = detailsResponse.body()
+                
+                if (movieDetails != null) {
+                    // 获取演员信息
+                    val castResponse = apiService.getMovieCredits(movieId, API_KEY)
+                    val cast = castResponse.body()?.cast ?: emptyList()
+                    
+                    // 确保中文标题/概述
+                    val finalizedMovie = ensureChineseMovie(movieId, movieDetails)
+                    
+                    Pair(finalizedMovie, cast)
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error getting movie details with cast: $movieId", e)
+                null
+            }
+        }
+    }
+
+    /**
+     * 获取电视剧详细信息（包括演员）
+     * @param tvId 电视剧ID
+     * @return 电视剧详细信息和演员列表
+     */
+    suspend fun getTVShowDetailsWithCast(tvId: Int): Pair<TmdbTVShow, List<TmdbCast>>? {
+        return withContext(Dispatchers.IO) {
+            try {
+                // 获取电视剧详情
+                val detailsResponse = apiService.getTVShowDetails(tvId, API_KEY)
+                val tvDetails = detailsResponse.body()
+                
+                if (tvDetails != null) {
+                    // 获取演员信息
+                    val castResponse = apiService.getTVCredits(tvId, API_KEY)
+                    val cast = castResponse.body()?.cast ?: emptyList()
+                    
+                    // 确保中文标题/概述
+                    val finalizedTV = ensureChineseTV(tvId, tvDetails)
+                    
+                    Pair(finalizedTV, cast)
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error getting TV show details with cast: $tvId", e)
+                null
+            }
+        }
+    }
+
+    /**
+     * 转换TMDB演员信息为Actor模型
+     * @param cast TMDB演员信息
+     * @return Actor模型
+     */
+    private fun convertTmdbCastToActor(cast: TmdbCast): com.tvplayer.webdav.data.model.Actor {
+        return com.tvplayer.webdav.data.model.Actor(
+            id = cast.id.toString(),
+            name = cast.name,
+            role = cast.character,
+            avatarUrl = cast.profilePath?.let { "${TmdbApiService.IMAGE_BASE_URL}${TmdbApiService.POSTER_SIZE_W500}$it" },
+            isDirector = false
+        )
+    }
+
+    /**
+     * 获取电影演员列表
+     * @param movieId 电影ID
+     * @return 演员列表
+     */
+    suspend fun getMovieActors(movieId: Int): List<com.tvplayer.webdav.data.model.Actor>? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val castResponse = apiService.getMovieCredits(movieId, API_KEY)
+                val cast = castResponse.body()?.cast ?: emptyList()
+                
+                // 转换为Actor模型，只取前10个主要演员
+                cast.sortedBy { it.order }
+                    .take(10)
+                    .map { convertTmdbCastToActor(it) }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error getting movie actors: $movieId", e)
+                null
+            }
+        }
+    }
+
+    /**
+     * 获取电视剧演员列表
+     * @param tvId 电视剧ID
+     * @return 演员列表
+     */
+    suspend fun getTVShowActors(tvId: Int): List<com.tvplayer.webdav.data.model.Actor>? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val castResponse = apiService.getTVCredits(tvId, API_KEY)
+                val cast = castResponse.body()?.cast ?: emptyList()
+                
+                // 转换为Actor模型，只取前10个主要演员
+                cast.sortedBy { it.order }
+                    .take(10)
+                    .map { convertTmdbCastToActor(it) }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error getting TV show actors: $tvId", e)
+                null
+            }
+        }
+    }
 }

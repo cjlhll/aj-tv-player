@@ -91,6 +91,25 @@ interface TmdbApiService {
         @Query("api_key") apiKey: String
     ): Response<TmdbTranslationsResponse>
 
+    /**
+     * 获取电影演员信息
+     */
+    @GET("movie/{movie_id}/credits")
+    suspend fun getMovieCredits(
+        @Path("movie_id") movieId: Int,
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String = "zh-CN"
+    ): Response<TmdbMovieCastResponse>
+
+    /**
+     * 获取电视剧演员信息
+     */
+    @GET("tv/{tv_id}/credits")
+    suspend fun getTVCredits(
+        @Path("tv_id") tvId: Int,
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String = "zh-CN"
+    ): Response<TmdbTVCastResponse>
 
     companion object {
         const val BASE_URL = "https://api.themoviedb.org/3/"
