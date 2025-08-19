@@ -8,6 +8,7 @@ import com.tvplayer.webdav.R
 import com.tvplayer.webdav.data.model.MediaCategory
 import com.tvplayer.webdav.data.model.MediaItem
 import com.tvplayer.webdav.data.model.MediaType
+import com.tvplayer.webdav.data.model.TVSeriesSummary
 import com.tvplayer.webdav.data.storage.WebDAVServerStorage
 import com.tvplayer.webdav.data.webdav.SimpleWebDAVClient
 import com.tvplayer.webdav.data.scanner.MediaScanner
@@ -40,8 +41,8 @@ class HomeViewModel @Inject constructor(
     private val _movies = MutableLiveData<List<MediaItem>>()
     val movies: LiveData<List<MediaItem>> = _movies
 
-    private val _tvShows = MutableLiveData<List<MediaItem>>()
-    val tvShows: LiveData<List<MediaItem>> = _tvShows
+    private val _tvShows = MutableLiveData<List<TVSeriesSummary>>()
+    val tvShows: LiveData<List<TVSeriesSummary>> = _tvShows
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
@@ -56,7 +57,7 @@ class HomeViewModel @Inject constructor(
         _tvShows.value = emptyList()
         _recentlyAdded.value = emptyList()
         mediaCache.movies().observeForever { _movies.postValue(it) }
-        mediaCache.tvShows().observeForever { _tvShows.postValue(it) }
+        mediaCache.tvSeriesSummaries().observeForever { _tvShows.postValue(it) }
         mediaCache.recentlyAdded().observeForever { _recentlyAdded.postValue(it) }
     }
 
@@ -179,39 +180,43 @@ class HomeViewModel @Inject constructor(
             )
         )
 
-        // 示例电视剧数据
+        // 示例电视剧系列数据
         val sampleTVShows = listOf(
-            MediaItem(
-                id = "tv_1_s1_e1",
-                title = "第一集：冬日将至",
-                seriesTitle = "权力的游戏",
-                seasonNumber = 1,
-                episodeNumber = 1,
+            TVSeriesSummary(
                 seriesId = "got",
-                overview = "史塔克家族的故事开始...",
-                releaseDate = Date(),
+                seriesTitle = "权力的游戏",
+                overview = "在维斯特洛大陆上，七个王国为了争夺铁王座而展开的史诗级斗争...",
                 rating = 9.0f,
-                duration = 62 * 60,
-                mediaType = MediaType.TV_EPISODE,
-                filePath = "/tv/game_of_thrones/s01/e01.mkv",
-                fileSize = 2L * 1024 * 1024 * 1024,
-                genre = listOf("奇幻", "剧情", "动作")
-            ),
-            MediaItem(
-                id = "tv_2_s1_e1",
-                title = "第一集：试播集",
-                seriesTitle = "老友记",
-                seasonNumber = 1,
-                episodeNumber = 1,
-                seriesId = "friends",
-                overview = "六个朋友的故事开始...",
                 releaseDate = Date(),
+                genre = listOf("奇幻", "剧情", "动作"),
+                totalSeasons = 8,
+                totalEpisodes = 73,
+                watchedEpisodes = 15,
+                episodes = emptyList()
+            ),
+            TVSeriesSummary(
+                seriesId = "friends",
+                seriesTitle = "老友记",
+                overview = "六个朋友在纽约的生活、爱情和友谊的温馨喜剧...",
                 rating = 8.9f,
-                duration = 22 * 60,
-                mediaType = MediaType.TV_EPISODE,
-                filePath = "/tv/friends/s01/e01.mp4",
-                fileSize = 500L * 1024 * 1024,
-                genre = listOf("喜剧", "爱情")
+                releaseDate = Date(),
+                genre = listOf("喜剧", "爱情"),
+                totalSeasons = 10,
+                totalEpisodes = 236,
+                watchedEpisodes = 50,
+                episodes = emptyList()
+            ),
+            TVSeriesSummary(
+                seriesId = "breaking_bad",
+                seriesTitle = "绝命毒师",
+                overview = "一个高中化学老师因为癌症诊断而开始制毒的犯罪剧...",
+                rating = 9.5f,
+                releaseDate = Date(),
+                genre = listOf("犯罪", "剧情", "惊悚"),
+                totalSeasons = 5,
+                totalEpisodes = 62,
+                watchedEpisodes = 0,
+                episodes = emptyList()
             )
         )
 
@@ -223,8 +228,8 @@ class HomeViewModel @Inject constructor(
             )
         }
 
-        // 最近添加
-        val recentlyAddedItems = (sampleMovies + sampleTVShows).take(4)
+        // 最近添加（只包含电影，因为TV shows现在是不同的数据类型）
+        val recentlyAddedItems = sampleMovies.take(4)
 
         _movies.value = sampleMovies
         _tvShows.value = sampleTVShows

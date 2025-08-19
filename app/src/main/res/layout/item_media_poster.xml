@@ -5,10 +5,8 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:layout_margin="10dp"
-    android:focusable="true"
-    android:clickable="true"
-    android:background="@drawable/poster_item_background"
-    android:elevation="4dp">
+    android:focusable="false"
+    android:clickable="false">
 
     <!-- 现代化海报容器 -->
     <androidx.cardview.widget.CardView
@@ -18,7 +16,10 @@
         android:layout_margin="4dp"
         app:cardCornerRadius="12dp"
         app:cardElevation="8dp"
-        app:cardBackgroundColor="@color/card_background">
+        app:cardBackgroundColor="@color/card_background"
+        android:focusable="true"
+        android:clickable="true"
+        android:background="@drawable/poster_item_background">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -31,13 +32,6 @@
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
                 android:src="@drawable/ic_video" />
-
-            <!-- 渐变遮罩 -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:layout_gravity="bottom"
-                android:background="@drawable/gradient_overlay" />
 
             <!-- 评分标签 -->
             <TextView
@@ -55,24 +49,13 @@
                 android:paddingVertical="4dp"
                 android:visibility="gone" />
 
-            <!-- 播放按钮 -->
-            <ImageView
-                android:id="@+id/iv_play_button"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_play_circle"
-                android:tint="@color/white"
-                android:alpha="0.9"
-                android:visibility="gone" />
-
             <!-- 观看进度 -->
             <LinearLayout
                 android:id="@+id/layout_progress"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
-                android:layout_marginBottom="60dp"
+                android:layout_margin="8dp"
                 android:orientation="vertical"
                 android:background="@drawable/progress_background"
                 android:padding="8dp"
@@ -98,50 +81,49 @@
 
             </LinearLayout>
 
-            <!-- 底部标题信息（常显） -->
-            <LinearLayout
-                android:id="@+id/layout_bottom_info"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
-                android:orientation="vertical"
-                android:padding="12dp"
-                android:alpha="1.0">
-
-                <TextView
-                    android:id="@+id/tv_title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="电影标题"
-                    android:textSize="14sp"
-                    android:textColor="@color/white"
-                    android:textStyle="bold"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:shadowColor="#80000000"
-                    android:shadowDx="1"
-                    android:shadowDy="1"
-                    android:shadowRadius="2" />
-
-                <TextView
-                    android:id="@+id/tv_subtitle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="2023 • 120分钟"
-                    android:textSize="12sp"
-                    android:textColor="#CCFFFFFF"
-                    android:layout_marginTop="4dp"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:shadowColor="#80000000"
-                    android:shadowDx="1"
-                    android:shadowDy="1"
-                    android:shadowRadius="2" />
-
-            </LinearLayout>
-
         </FrameLayout>
 
     </androidx.cardview.widget.CardView>
+
+    <!-- 标题信息区域（在海报下方） -->
+    <LinearLayout
+        android:id="@+id/layout_bottom_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="8dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:focusable="false"
+        android:clickable="false">
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="电影标题"
+            android:textSize="14sp"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:gravity="start"
+            android:focusable="false" />
+
+        <TextView
+            android:id="@+id/tv_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="2023 • 120分钟"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginTop="2dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:gravity="start"
+            android:visibility="visible"
+            android:focusable="false" />
+
+    </LinearLayout>
 
 </LinearLayout>

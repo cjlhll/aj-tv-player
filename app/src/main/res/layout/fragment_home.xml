@@ -18,18 +18,7 @@
         android:layout_height="match_parent"
         android:background="@drawable/backdrop_gradient" />
 
-    <!-- 顶部右上角刷新按钮 -->
-    <ImageButton
-        android:id="@+id/btn_refresh"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_gravity="top|end"
-        android:layout_margin="12dp"
-        android:background="@drawable/text_button_background"
-        android:contentDescription="刷新"
-        android:padding="8dp"
-        android:src="@drawable/ic_scan"
-        android:tint="@color/text_primary" />
+
 
     <!-- 内容层 -->
     <ScrollView
@@ -80,37 +69,7 @@
 
                 </LinearLayout>
 
-                <!-- 右侧功能图标 -->
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
 
-                    <ImageView
-                        android:id="@+id/iv_search"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_search"
-                        android:tint="@color/text_secondary"
-                        android:layout_marginEnd="16dp"
-                        android:background="@drawable/icon_background"
-                        android:padding="8dp"
-                        android:focusable="true"
-                        android:clickable="true" />
-
-                    <ImageView
-                        android:id="@+id/iv_settings"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_settings"
-                        android:tint="@color/text_secondary"
-                        android:background="@drawable/icon_background"
-                        android:padding="8dp"
-                        android:focusable="true"
-                        android:clickable="true" />
-
-                </LinearLayout>
 
             </LinearLayout>
 

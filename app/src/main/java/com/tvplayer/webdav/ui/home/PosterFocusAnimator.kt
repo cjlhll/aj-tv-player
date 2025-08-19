@@ -16,9 +16,9 @@ import androidx.cardview.widget.CardView
  */
 object PosterFocusAnimator {
     
-    private const val SCALE_FOCUSED = 1.06f
+    private const val SCALE_FOCUSED = 1.04f  // 减小缩放避免裁剪
     private const val SCALE_NORMAL = 1.0f
-    private const val ANIMATION_DURATION = 350L
+    private const val ANIMATION_DURATION = 400L
     private const val STAGGER_DELAY = 50L  // 错开动画延迟
     
     /**
@@ -68,15 +68,17 @@ object PosterFocusAnimator {
         playButton: ImageView?,
         ratingBadge: TextView?
     ) {
-        // 主容器缩放和阴影动画
+        // 主容器缩放动画（移除阴影效果）
         val scaleX = ObjectAnimator.ofFloat(itemView, "scaleX", itemView.scaleX, SCALE_FOCUSED)
         val scaleY = ObjectAnimator.ofFloat(itemView, "scaleY", itemView.scaleY, SCALE_FOCUSED)
-        val elevation = ObjectAnimator.ofFloat(cardView, "cardElevation", cardView.cardElevation, 16f)
+
+        // 边框透明度动画（增强焦点效果）
+        val borderAlpha = ObjectAnimator.ofFloat(itemView, "alpha", itemView.alpha, 1.0f)
         
         val mainAnimatorSet = AnimatorSet()
-        mainAnimatorSet.playTogether(scaleX, scaleY, elevation)
+        mainAnimatorSet.playTogether(scaleX, scaleY, borderAlpha)
         mainAnimatorSet.duration = ANIMATION_DURATION
-        mainAnimatorSet.interpolator = OvershootInterpolator(0.1f)
+        mainAnimatorSet.interpolator = OvershootInterpolator(0.15f)
         
         // 播放按钮动画 - 淡入 + 缩放
         playButton?.let { button ->
@@ -122,13 +124,15 @@ object PosterFocusAnimator {
         playButton: ImageView?,
         ratingBadge: TextView?
     ) {
-        // 主容器恢复动画
+        // 主容器恢复动画（移除阴影效果）
         val scaleX = ObjectAnimator.ofFloat(itemView, "scaleX", itemView.scaleX, SCALE_NORMAL)
         val scaleY = ObjectAnimator.ofFloat(itemView, "scaleY", itemView.scaleY, SCALE_NORMAL)
-        val elevation = ObjectAnimator.ofFloat(cardView, "cardElevation", cardView.cardElevation, 8f)
-        
+
+        // 边框透明度恢复
+        val borderAlpha = ObjectAnimator.ofFloat(itemView, "alpha", itemView.alpha, 1.0f)
+
         val mainAnimatorSet = AnimatorSet()
-        mainAnimatorSet.playTogether(scaleX, scaleY, elevation)
+        mainAnimatorSet.playTogether(scaleX, scaleY, borderAlpha)
         mainAnimatorSet.duration = ANIMATION_DURATION
         mainAnimatorSet.interpolator = AccelerateDecelerateInterpolator()
         

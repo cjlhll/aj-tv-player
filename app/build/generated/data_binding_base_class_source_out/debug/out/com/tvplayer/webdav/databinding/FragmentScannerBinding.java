@@ -28,7 +28,10 @@ public final class FragmentScannerBinding implements ViewBinding {
   public final Button btnPickTvDir;
 
   @NonNull
-  public final Button btnStartScan;
+  public final Button btnScanMovies;
+
+  @NonNull
+  public final Button btnScanTv;
 
   @NonNull
   public final ProgressBar progressBar;
@@ -46,13 +49,14 @@ public final class FragmentScannerBinding implements ViewBinding {
   public final TextView tvTvDir;
 
   private FragmentScannerBinding(@NonNull ScrollView rootView, @NonNull Button btnPickMoviesDir,
-      @NonNull Button btnPickTvDir, @NonNull Button btnStartScan, @NonNull ProgressBar progressBar,
-      @NonNull TextView tvMoviesDir, @NonNull TextView tvScanProgress,
-      @NonNull TextView tvScanStatus, @NonNull TextView tvTvDir) {
+      @NonNull Button btnPickTvDir, @NonNull Button btnScanMovies, @NonNull Button btnScanTv,
+      @NonNull ProgressBar progressBar, @NonNull TextView tvMoviesDir,
+      @NonNull TextView tvScanProgress, @NonNull TextView tvScanStatus, @NonNull TextView tvTvDir) {
     this.rootView = rootView;
     this.btnPickMoviesDir = btnPickMoviesDir;
     this.btnPickTvDir = btnPickTvDir;
-    this.btnStartScan = btnStartScan;
+    this.btnScanMovies = btnScanMovies;
+    this.btnScanTv = btnScanTv;
     this.progressBar = progressBar;
     this.tvMoviesDir = tvMoviesDir;
     this.tvScanProgress = tvScanProgress;
@@ -99,9 +103,15 @@ public final class FragmentScannerBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.btn_start_scan;
-      Button btnStartScan = ViewBindings.findChildViewById(rootView, id);
-      if (btnStartScan == null) {
+      id = R.id.btn_scan_movies;
+      Button btnScanMovies = ViewBindings.findChildViewById(rootView, id);
+      if (btnScanMovies == null) {
+        break missingId;
+      }
+
+      id = R.id.btn_scan_tv;
+      Button btnScanTv = ViewBindings.findChildViewById(rootView, id);
+      if (btnScanTv == null) {
         break missingId;
       }
 
@@ -136,7 +146,8 @@ public final class FragmentScannerBinding implements ViewBinding {
       }
 
       return new FragmentScannerBinding((ScrollView) rootView, btnPickMoviesDir, btnPickTvDir,
-          btnStartScan, progressBar, tvMoviesDir, tvScanProgress, tvScanStatus, tvTvDir);
+          btnScanMovies, btnScanTv, progressBar, tvMoviesDir, tvScanProgress, tvScanStatus,
+          tvTvDir);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

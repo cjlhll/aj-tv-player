@@ -44,7 +44,7 @@ class MediaPosterAdapter(
         private val progressBar: ProgressBar = itemView.findViewById(R.id.progress_bar)
         private val tvProgress: TextView = itemView.findViewById(R.id.tv_progress)
         private val tvRating: TextView = itemView.findViewById(R.id.tv_rating)
-        private val ivPlayButton: ImageView = itemView.findViewById(R.id.iv_play_button)
+
         private val layoutProgress: View = itemView.findViewById(R.id.layout_progress)
         private val bottomInfo: View = itemView.findViewById(R.id.layout_bottom_info)
 
@@ -68,12 +68,8 @@ class MediaPosterAdapter(
                 progressBar.progress = mediaItem.getWatchedPercentage()
                 tvProgress.text = "${mediaItem.getWatchedPercentage()}%"
                 layoutProgress.visibility = View.VISIBLE
-                ivPlayButton.visibility = View.GONE
             } else {
                 layoutProgress.visibility = View.GONE
-                ivPlayButton.visibility = View.VISIBLE
-                // 为播放按钮添加悬浮动画
-                PosterFocusAnimator.startPlayButtonFloatingAnimation(ivPlayButton)
             }
 
             // 显示评分（如果有的话）
@@ -102,22 +98,26 @@ class MediaPosterAdapter(
                 })
             }
 
-            itemView.setOnClickListener {
-                onMediaClick(mediaItem)
-            }
-
             // 设置焦点效果（使用卡片焦点动画）
             val cardView = itemView.findViewById<CardView>(R.id.card_view)
             if (cardView != null) {
+                // 设置点击事件在CardView上
+                cardView.setOnClickListener {
+                    onMediaClick(mediaItem)
+                }
+
                 PosterFocusAnimator.setupPosterFocusAnimation(
-                    itemView, cardView, ivPlayButton, tvRating
+                    cardView, cardView, null, tvRating
                 ) { hasFocus ->
-                    bottomInfo.animate().alpha(if (hasFocus) 1f else 0f).setDuration(200).start()
                     if (hasFocus) {
                         onItemFocused?.invoke(mediaItem)
                     }
                 }
             } else {
+                // 备用方案
+                itemView.setOnClickListener {
+                    onMediaClick(mediaItem)
+                }
                 FocusHighlightHelper.setupFocusHighlight(itemView)
             }
         }

@@ -53,6 +53,7 @@ drawable backdrop_gradient
 drawable button_secondary
 drawable category_background
 drawable focus_border
+drawable focus_border_enhanced
 drawable gradient_overlay
 drawable header_background
 drawable ic_favorite
@@ -86,8 +87,8 @@ id btn_media_scan
 id btn_pick_movies_dir
 id btn_pick_tv_dir
 id btn_playback_settings
-id btn_refresh
-id btn_start_scan
+id btn_scan_movies
+id btn_scan_tv
 id btn_test
 id btn_webdav_settings
 id card_view
@@ -98,10 +99,7 @@ id et_server_url
 id et_username
 id iv_backdrop
 id iv_category_icon
-id iv_play_button
 id iv_poster
-id iv_search
-id iv_settings
 id layout_bottom_info
 id layout_progress
 id main_browse_fragment

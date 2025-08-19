@@ -7,6 +7,8 @@ import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.tvplayer.webdav.data.model.MediaItem
+import com.tvplayer.webdav.data.model.TVSeriesSummary
+import com.tvplayer.webdav.data.model.MediaType
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,6 +46,10 @@ class MediaCache @Inject constructor(
         persistItems(items)
     }
 
+    fun getItems(): List<MediaItem> {
+        return _allItems.value ?: emptyList()
+    }
+
     fun allItems(): LiveData<List<MediaItem>> = _allItems
 
     fun movies(): LiveData<List<MediaItem>> {
@@ -62,10 +68,54 @@ class MediaCache @Inject constructor(
         return live
     }
 
+    fun tvSeriesSummaries(): LiveData<List<TVSeriesSummary>> {
+        val live = MediatorLiveData<List<TVSeriesSummary>>()
+        live.addSource(_allItems) { items ->
+            live.value = groupTVEpisodesBySeries(items)
+        }
+        return live
+    }
+
+    private fun groupTVEpisodesBySeries(items: List<MediaItem>): List<TVSeriesSummary> {
+        val tvEpisodes = items.filter {
+            it.mediaType == MediaType.TV_EPISODE || it.mediaType == MediaType.TV_SERIES
+        }
+
+        val groupedBySeries = tvEpisodes.groupBy { episode ->
+            episode.seriesId ?: episode.seriesTitle ?: episode.title
+        }
+
+        return groupedBySeries.map { (seriesKey, episodes) ->
+            val firstEpisode = episodes.first()
+            val seasons = episodes.mapNotNull { it.seasonNumber }.distinct()
+            val totalSeasons = seasons.size
+            val totalEpisodes = episodes.size
+            val watchedEpisodes = episodes.count { it.watchedProgress > 0.9f } // 90%以上算看完
+            val lastWatchedTime = episodes.mapNotNull { it.lastWatchedTime }.maxOrNull()
+
+            TVSeriesSummary(
+                seriesId = firstEpisode.seriesId ?: "series_${seriesKey.hashCode()}",
+                seriesTitle = firstEpisode.seriesTitle ?: firstEpisode.title,
+                posterPath = firstEpisode.posterPath,
+                backdropPath = firstEpisode.backdropPath,
+                overview = firstEpisode.overview,
+                rating = firstEpisode.rating,
+                releaseDate = firstEpisode.releaseDate,
+                genre = firstEpisode.genre,
+                totalSeasons = totalSeasons,
+                totalEpisodes = totalEpisodes,
+                watchedEpisodes = watchedEpisodes,
+                lastWatchedTime = lastWatchedTime,
+                episodes = episodes
+            )
+        }.sortedByDescending { it.lastWatchedTime ?: it.releaseDate }
+    }
+
     fun recentlyAdded(): LiveData<List<MediaItem>> {
         val live = MediatorLiveData<List<MediaItem>>()
         live.addSource(_allItems) { items ->
-            live.value = items.take(10)
+            // 只显示电影作为最近添加，避免显示大量TV剧集
+            live.value = items.filter { it.mediaType == MediaType.MOVIE }.take(10)
         }
         return live
     }

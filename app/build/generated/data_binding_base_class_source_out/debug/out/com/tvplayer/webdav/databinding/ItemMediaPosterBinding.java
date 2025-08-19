@@ -26,9 +26,6 @@ public final class ItemMediaPosterBinding implements ViewBinding {
   public final CardView cardView;
 
   @NonNull
-  public final ImageView ivPlayButton;
-
-  @NonNull
   public final ImageView ivPoster;
 
   @NonNull
@@ -53,13 +50,12 @@ public final class ItemMediaPosterBinding implements ViewBinding {
   public final TextView tvTitle;
 
   private ItemMediaPosterBinding(@NonNull LinearLayout rootView, @NonNull CardView cardView,
-      @NonNull ImageView ivPlayButton, @NonNull ImageView ivPoster,
-      @NonNull LinearLayout layoutBottomInfo, @NonNull LinearLayout layoutProgress,
-      @NonNull ProgressBar progressBar, @NonNull TextView tvProgress, @NonNull TextView tvRating,
-      @NonNull TextView tvSubtitle, @NonNull TextView tvTitle) {
+      @NonNull ImageView ivPoster, @NonNull LinearLayout layoutBottomInfo,
+      @NonNull LinearLayout layoutProgress, @NonNull ProgressBar progressBar,
+      @NonNull TextView tvProgress, @NonNull TextView tvRating, @NonNull TextView tvSubtitle,
+      @NonNull TextView tvTitle) {
     this.rootView = rootView;
     this.cardView = cardView;
-    this.ivPlayButton = ivPlayButton;
     this.ivPoster = ivPoster;
     this.layoutBottomInfo = layoutBottomInfo;
     this.layoutProgress = layoutProgress;
@@ -100,12 +96,6 @@ public final class ItemMediaPosterBinding implements ViewBinding {
       id = R.id.card_view;
       CardView cardView = ViewBindings.findChildViewById(rootView, id);
       if (cardView == null) {
-        break missingId;
-      }
-
-      id = R.id.iv_play_button;
-      ImageView ivPlayButton = ViewBindings.findChildViewById(rootView, id);
-      if (ivPlayButton == null) {
         break missingId;
       }
 
@@ -157,7 +147,7 @@ public final class ItemMediaPosterBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ItemMediaPosterBinding((LinearLayout) rootView, cardView, ivPlayButton, ivPoster,
+      return new ItemMediaPosterBinding((LinearLayout) rootView, cardView, ivPoster,
           layoutBottomInfo, layoutProgress, progressBar, tvProgress, tvRating, tvSubtitle, tvTitle);
     }
     String missingId = rootView.getResources().getResourceName(id);

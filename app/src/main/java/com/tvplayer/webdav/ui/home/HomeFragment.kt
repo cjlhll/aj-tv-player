@@ -13,6 +13,7 @@ import com.tvplayer.webdav.R
 import com.tvplayer.webdav.data.model.MediaCategory
 import com.tvplayer.webdav.data.model.MediaType
 import com.tvplayer.webdav.ui.settings.SettingsFragment
+import com.tvplayer.webdav.data.model.TVSeriesSummary
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -35,7 +36,7 @@ class HomeFragment : Fragment() {
     private lateinit var recentlyAddedAdapter: MediaPosterAdapter
     private lateinit var continueWatchingAdapter: MediaPosterAdapter
     private lateinit var moviesAdapter: MediaPosterAdapter
-    private lateinit var tvShowsAdapter: MediaPosterAdapter
+    private lateinit var tvShowsAdapter: TVSeriesAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -63,10 +64,6 @@ class HomeFragment : Fragment() {
         rvMovies = view.findViewById(R.id.rv_movies)
         rvTVShows = view.findViewById(R.id.rv_tv_shows)
         ivBackdrop = view.findViewById(R.id.iv_backdrop)
-        // 刷新按钮
-        view.findViewById<android.widget.ImageButton>(R.id.btn_refresh)?.setOnClickListener {
-            viewModel.rescanAndScrape()
-        }
 
     }
 
@@ -91,8 +88,8 @@ class HomeFragment : Fragment() {
         rvRecentlyAdded.apply {
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
             adapter = recentlyAddedAdapter
-            // 为边缘item的焦点效果添加更多padding
-            setPadding(24, 8, 24, 8)
+            // 为边缘item的焦点效果添加更多padding，增加垂直padding防止裁剪
+            setPadding(24, 16, 24, 16)
             clipToPadding = false
         }
 
@@ -104,8 +101,8 @@ class HomeFragment : Fragment() {
         rvContinueWatching.apply {
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
             adapter = continueWatchingAdapter
-            // 为边缘item的焦点效果添加更多padding
-            setPadding(24, 8, 24, 8)
+            // 为边缘item的焦点效果添加更多padding，增加垂直padding防止裁剪
+            setPadding(24, 16, 24, 16)
             clipToPadding = false
         }
 
@@ -124,9 +121,9 @@ class HomeFragment : Fragment() {
         }
 
         // 电视剧适配器
-        tvShowsAdapter = MediaPosterAdapter(
-            onMediaClick = { mediaItem -> onMediaItemClick(mediaItem) },
-            onItemFocused = { mediaItem -> onPosterFocused(mediaItem) }
+        tvShowsAdapter = TVSeriesAdapter(
+            onSeriesClick = { series -> onTVSeriesClick(series) },
+            onItemFocused = { series -> onTVSeriesFocused(series) }
         )
         rvTVShows.apply {
             layoutManager = GridLayoutManager(context, 5) // 改为5列
@@ -189,20 +186,84 @@ class HomeFragment : Fragment() {
 
     private fun onPosterFocused(mediaItem: com.tvplayer.webdav.data.model.MediaItem) {
         val backdropUrl = mediaItem.backdropPath ?: mediaItem.posterPath
+        updateBackdropWithTransition(backdropUrl)
+    }
+
+    private fun onTVSeriesClick(series: TVSeriesSummary) {
+        // TODO: 导航到电视剧详情页面或剧集列表
+        // 暂时显示Toast
+        android.widget.Toast.makeText(context, "点击了电视剧: ${series.seriesTitle}", android.widget.Toast.LENGTH_SHORT).show()
+    }
+
+    private fun onTVSeriesFocused(series: TVSeriesSummary) {
+        val backdropUrl = series.backdropPath ?: series.posterPath
+        updateBackdropWithTransition(backdropUrl)
+    }
+
+    /**
+     * 更新背景图片并添加平滑过渡效果
+     */
+    private fun updateBackdropWithTransition(backdropUrl: String?) {
         val imageView = ivBackdrop ?: return
+
         if (backdropUrl.isNullOrEmpty()) {
-            imageView.animate().alpha(0f).setDuration(200).start()
+            // 淡出到透明
+            imageView.animate()
+                .alpha(0f)
+                .setDuration(300)
+                .start()
             return
         }
-        // 使用Glide加载背景图并淡入
+
         try {
+            // 创建一个临时的ImageView用于预加载新图片
+            val tempImageView = android.widget.ImageView(requireContext())
+            tempImageView.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+
+            // 使用Glide预加载新图片
             com.bumptech.glide.Glide.with(requireContext())
                 .load(backdropUrl)
                 .centerCrop()
-                .into(imageView)
-            imageView.animate().alpha(1f).setDuration(250).start()
+                .into(object : com.bumptech.glide.request.target.CustomTarget<android.graphics.drawable.Drawable>() {
+                    override fun onResourceReady(
+                        resource: android.graphics.drawable.Drawable,
+                        transition: com.bumptech.glide.request.transition.Transition<in android.graphics.drawable.Drawable>?
+                    ) {
+                        // 新图片加载完成，开始交叉淡入淡出动画
+                        performCrossfadeTransition(imageView, resource)
+                    }
+
+                    override fun onLoadCleared(placeholder: android.graphics.drawable.Drawable?) {
+                        // 加载被清除时的处理
+                    }
+                })
         } catch (e: Exception) {
-            // 忽略加载错误，保持现状
+            // 加载失败时保持当前状态
+        }
+    }
+
+    /**
+     * 执行交叉淡入淡出过渡动画
+     */
+    private fun performCrossfadeTransition(imageView: android.widget.ImageView, newDrawable: android.graphics.drawable.Drawable) {
+        val currentDrawable = imageView.drawable
+
+        if (currentDrawable == null) {
+            // 如果当前没有图片，直接淡入新图片
+            imageView.setImageDrawable(newDrawable)
+            imageView.alpha = 0f
+            imageView.animate()
+                .alpha(1f)
+                .setDuration(400)
+                .start()
+        } else {
+            // 创建交叉淡入淡出效果
+            val crossfadeDrawable = android.graphics.drawable.TransitionDrawable(
+                arrayOf(currentDrawable, newDrawable)
+            )
+
+            imageView.setImageDrawable(crossfadeDrawable)
+            crossfadeDrawable.startTransition(500) // 500ms的交叉淡入淡出
         }
     }
 

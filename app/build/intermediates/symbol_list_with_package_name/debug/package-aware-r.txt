@@ -3800,6 +3800,7 @@ drawable exo_styled_controls_subtitle_off
 drawable exo_styled_controls_subtitle_on
 drawable exo_styled_controls_vr
 drawable focus_border
+drawable focus_border_enhanced
 drawable gradient_overlay
 drawable header_background
 drawable ic_arrow_back_black_24
@@ -4117,8 +4118,8 @@ id btn_media_scan
 id btn_pick_movies_dir
 id btn_pick_tv_dir
 id btn_playback_settings
-id btn_refresh
-id btn_start_scan
+id btn_scan_movies
+id btn_scan_tv
 id btn_test
 id btn_webdav_settings
 id button
@@ -4384,10 +4385,7 @@ id italic
 id item_touch_helper_previous_elevation
 id iv_backdrop
 id iv_category_icon
-id iv_play_button
 id iv_poster
-id iv_search
-id iv_settings
 id jumpToEnd
 id jumpToStart
 id label

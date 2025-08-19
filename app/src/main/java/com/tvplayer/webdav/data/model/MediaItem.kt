@@ -124,6 +124,55 @@ enum class MediaType {
 }
 
 /**
+ * 电视剧系列汇总数据模型
+ * 用于在首页显示电视剧系列而不是单个剧集
+ */
+@Parcelize
+data class TVSeriesSummary(
+    val seriesId: String,
+    val seriesTitle: String,
+    val posterPath: String? = null,
+    val backdropPath: String? = null,
+    val overview: String? = null,
+    val rating: Float = 0f,
+    val releaseDate: Date? = null,
+    val genre: List<String> = emptyList(),
+    val totalSeasons: Int = 0,
+    val totalEpisodes: Int = 0,
+    val watchedEpisodes: Int = 0,
+    val lastWatchedTime: Date? = null,
+    val episodes: List<MediaItem> = emptyList() // 包含的所有剧集
+) : Parcelable {
+
+    /**
+     * 获取显示的副标题（季数和集数信息）
+     */
+    fun getSubtitle(): String {
+        return if (totalSeasons > 0) {
+            "${totalSeasons}季 · ${totalEpisodes}集"
+        } else {
+            "${totalEpisodes}集"
+        }
+    }
+
+    /**
+     * 获取观看进度
+     */
+    fun getWatchedProgress(): Float {
+        return if (totalEpisodes > 0) {
+            watchedEpisodes.toFloat() / totalEpisodes.toFloat()
+        } else 0f
+    }
+
+    /**
+     * 是否有观看进度
+     */
+    fun hasWatchedProgress(): Boolean {
+        return watchedEpisodes > 0
+    }
+}
+
+/**
  * 媒体分类
  */
 data class MediaCategory(

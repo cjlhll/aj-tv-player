@@ -3799,6 +3799,7 @@ int drawable exo_styled_controls_subtitle_off 0x7f0800d6
 int drawable exo_styled_controls_subtitle_on 0x7f0800d7
 int drawable exo_styled_controls_vr 0x7f0800d8
 int drawable focus_border 0x7f0800d9
+int drawable focus_border_enhanced 0x7f080185
 int drawable gradient_overlay 0x7f0800da
 int drawable header_background 0x7f0800db
 int drawable ic_arrow_back_black_24 0x7f0800dc
@@ -4116,8 +4117,8 @@ int id btn_media_scan 0x7f0b0083
 int id btn_pick_movies_dir 0x7f0b0084
 int id btn_pick_tv_dir 0x7f0b0085
 int id btn_playback_settings 0x7f0b0086
-int id btn_refresh 0x7f0b0087
-int id btn_start_scan 0x7f0b0088
+int id btn_scan_movies 0x7f0b0325
+int id btn_scan_tv 0x7f0b0326
 int id btn_test 0x7f0b0089
 int id btn_webdav_settings 0x7f0b008a
 int id button 0x7f0b008b
@@ -4383,10 +4384,7 @@ int id italic 0x7f0b018e
 int id item_touch_helper_previous_elevation 0x7f0b018f
 int id iv_backdrop 0x7f0b0190
 int id iv_category_icon 0x7f0b0191
-int id iv_play_button 0x7f0b0192
 int id iv_poster 0x7f0b0193
-int id iv_search 0x7f0b0194
-int id iv_settings 0x7f0b0195
 int id jumpToEnd 0x7f0b0196
 int id jumpToStart 0x7f0b0197
 int id label 0x7f0b0198

@@ -24,11 +24,12 @@ class ScannerFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by viewModels()
 
-    private lateinit var btnStartScan: Button
     private lateinit var tvMoviesDir: TextView
     private lateinit var tvTvDir: TextView
     private lateinit var btnPickMoviesDir: Button
     private lateinit var btnPickTvDir: Button
+    private lateinit var btnScanMovies: Button
+    private lateinit var btnScanTv: Button
     private lateinit var tvScanStatus: TextView
     private lateinit var tvScanProgress: TextView
     private lateinit var progressBar: ProgressBar
@@ -50,7 +51,6 @@ class ScannerFragment : Fragment() {
     }
 
     private fun initViews(view: View) {
-        btnStartScan = view.findViewById(R.id.btn_start_scan)
         tvScanStatus = view.findViewById(R.id.tv_scan_status)
         tvScanProgress = view.findViewById(R.id.tv_scan_progress)
         progressBar = view.findViewById(R.id.progress_bar)
@@ -59,41 +59,74 @@ class ScannerFragment : Fragment() {
         tvTvDir = view.findViewById(R.id.tv_tv_dir)
         btnPickMoviesDir = view.findViewById(R.id.btn_pick_movies_dir)
         btnPickTvDir = view.findViewById(R.id.btn_pick_tv_dir)
+        btnScanMovies = view.findViewById(R.id.btn_scan_movies)
+        btnScanTv = view.findViewById(R.id.btn_scan_tv)
 
-        // 读取已保存的分类目录
-        tvMoviesDir.text = viewModel.getMoviesDir() ?: "未设置"
-        tvTvDir.text = viewModel.getTvDir() ?: "未设置"
+        // 读取已保存的分类目录并格式化显示
+        updateMoviesDirDisplay()
+        updateTvDirDisplay()
+    }
+
+    private fun updateMoviesDirDisplay() {
+        val moviesDir = viewModel.getMoviesDir()
+        tvMoviesDir.text = if (moviesDir.isNullOrEmpty()) {
+            "未设置"
+        } else {
+            formatChinesePath(moviesDir)
+        }
+        btnScanMovies.isEnabled = !moviesDir.isNullOrEmpty() && viewModel.isScanning.value != true
+    }
+
+    private fun updateTvDirDisplay() {
+        val tvDir = viewModel.getTvDir()
+        tvTvDir.text = if (tvDir.isNullOrEmpty()) {
+            "未设置"
+        } else {
+            formatChinesePath(tvDir)
+        }
+        btnScanTv.isEnabled = !tvDir.isNullOrEmpty() && viewModel.isScanning.value != true
+    }
+
+    private fun formatChinesePath(path: String): String {
+        return try {
+            // 尝试URL解码以正确显示中文字符
+            java.net.URLDecoder.decode(path, "UTF-8")
+        } catch (e: Exception) {
+            // 如果解码失败，返回原始路径
+            path
+        }
     }
 
     private fun setupListeners() {
         btnPickMoviesDir.setOnClickListener {
             showPathSelectionDialog { chosen ->
                 viewModel.setMoviesDir(chosen)
-                tvMoviesDir.text = chosen
+                updateMoviesDirDisplay()
             }
         }
 
         btnPickTvDir.setOnClickListener {
             showPathSelectionDialog { chosen ->
                 viewModel.setTvDir(chosen)
-                tvTvDir.text = chosen
+                updateTvDirDisplay()
             }
         }
 
-        btnStartScan.setOnClickListener {
-            startScan()
+        btnScanMovies.setOnClickListener {
+            startScanMovies()
+        }
+
+        btnScanTv.setOnClickListener {
+            startScanTv()
         }
     }
 
     private fun observeViewModel() {
-        // 启动按钮在设置了任一分类目录后可用
-        fun canStart(): Boolean = !viewModel.getMoviesDir().isNullOrEmpty() || !viewModel.getTvDir().isNullOrEmpty()
-        btnStartScan.isEnabled = canStart()
-        // 当分类目录变化时也可以刷新按钮状态（如有需要可监听 LiveData）
-
         viewModel.isScanning.observe(viewLifecycleOwner) { isScanning ->
-            btnStartScan.isEnabled = !isScanning && viewModel.canStartScan()
             progressBar.visibility = if (isScanning) View.VISIBLE else View.GONE
+            // 扫描时禁用所有扫描按钮
+            btnScanMovies.isEnabled = !isScanning && !viewModel.getMoviesDir().isNullOrEmpty()
+            btnScanTv.isEnabled = !isScanning && !viewModel.getTvDir().isNullOrEmpty()
         }
 
         viewModel.scanProgress.observe(viewLifecycleOwner) { progress ->
@@ -206,6 +239,28 @@ class ScannerFragment : Fragment() {
             if (file.isDirectory) {
                 viewModel.enterDirectory(file)
             }
+        }
+    }
+
+    private fun startScanMovies() {
+        val moviesDir = viewModel.getMoviesDir()
+        if (moviesDir.isNullOrEmpty()) {
+            Toast.makeText(context, "请先设置电影目录", Toast.LENGTH_SHORT).show()
+            return
+        }
+        lifecycleScope.launch {
+            viewModel.startScanMovies()
+        }
+    }
+
+    private fun startScanTv() {
+        val tvDir = viewModel.getTvDir()
+        if (tvDir.isNullOrEmpty()) {
+            Toast.makeText(context, "请先设置电视剧目录", Toast.LENGTH_SHORT).show()
+            return
+        }
+        lifecycleScope.launch {
+            viewModel.startScanTv()
         }
     }
 

@@ -13,7 +13,7 @@ import android.view.animation.OvershootInterpolator
  */
 object FocusHighlightHelper {
 
-    private const val SCALE_FOCUSED = 1.06f  // 减少缩放比例，避免边框被裁剪
+    private const val SCALE_FOCUSED = 1.04f  // 减少缩放比例，避免边框被裁剪
     private const val SCALE_NORMAL = 1.0f
     private const val ANIMATION_DURATION = 300L  // 更平滑的动画时长
 
@@ -34,14 +34,12 @@ object FocusHighlightHelper {
         view.clearAnimation()
 
         val scale = if (hasFocus) SCALE_FOCUSED else SCALE_NORMAL
-        val elevation = if (hasFocus) 16f else 8f  // 更明显的阴影效果
 
         val scaleX = ObjectAnimator.ofFloat(view, "scaleX", view.scaleX, scale)
         val scaleY = ObjectAnimator.ofFloat(view, "scaleY", view.scaleY, scale)
-        val elevationAnim = ObjectAnimator.ofFloat(view, "elevation", view.elevation, elevation)
 
         val animatorSet = AnimatorSet()
-        animatorSet.playTogether(scaleX, scaleY, elevationAnim)
+        animatorSet.playTogether(scaleX, scaleY)
         animatorSet.duration = ANIMATION_DURATION
 
         // 获得焦点时使用弹性插值器，失去焦点时使用平滑插值器

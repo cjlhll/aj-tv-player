@@ -50,8 +50,8 @@ app/
 - [x] Android TV适配
 
 ### 第二阶段：核心功能（进行中）
-- [ ] 基础架构搭建（MVVM + Hilt）
-- [ ] WebDAV连接模块
+- [x] 基础架构搭建（MVVM + Hilt）
+- [x] WebDAV连接模块
 - [ ] 文件浏览器UI
 - [ ] 视频播放器集成
 

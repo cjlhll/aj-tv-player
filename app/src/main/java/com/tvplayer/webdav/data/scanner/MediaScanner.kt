@@ -145,12 +145,14 @@ class MediaScanner @Inject constructor(
         return when (modeHint) {
             ModeHint.MOVIE -> tmdbClient.scrapeMovie(name, path)
             ModeHint.TV -> {
-                // 优先尝试按SxxEyy匹配；若没有匹配，按上级目录名作为剧名
+                // 对于TV模式，始终使用目录名作为剧名来获取剧集封面
+                val seriesName = file.path.trimEnd('/').substringBeforeLast('/').substringAfterLast('/')
+
+                // 尝试从文件名提取季集信息
                 val matcher = TV_SEASON_EPISODE_PATTERNS.firstOrNull { it.matcher(name).find() }?.matcher(name)
                 val season = if (matcher != null && matcher.find()) matcher.group(1)?.toIntOrNull() else null
                 val episode = if (matcher != null) matcher.group(2)?.toIntOrNull() else null
-                val seriesName = if (season != null && episode != null) name.substringBeforeLast('.') else
-                    file.path.trimEnd('/').substringBeforeLast('/').substringAfterLast('/')
+
                 tmdbClient.scrapeTVShow(seriesName, season, episode, path)
             }
             null -> {

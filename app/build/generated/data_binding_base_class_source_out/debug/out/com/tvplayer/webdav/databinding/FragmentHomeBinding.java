@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -23,16 +22,7 @@ public final class FragmentHomeBinding implements ViewBinding {
   private final FrameLayout rootView;
 
   @NonNull
-  public final ImageButton btnRefresh;
-
-  @NonNull
   public final ImageView ivBackdrop;
-
-  @NonNull
-  public final ImageView ivSearch;
-
-  @NonNull
-  public final ImageView ivSettings;
 
   @NonNull
   public final RecyclerView rvCategories;
@@ -58,17 +48,13 @@ public final class FragmentHomeBinding implements ViewBinding {
   @NonNull
   public final TextView tvAllRecent;
 
-  private FragmentHomeBinding(@NonNull FrameLayout rootView, @NonNull ImageButton btnRefresh,
-      @NonNull ImageView ivBackdrop, @NonNull ImageView ivSearch, @NonNull ImageView ivSettings,
+  private FragmentHomeBinding(@NonNull FrameLayout rootView, @NonNull ImageView ivBackdrop,
       @NonNull RecyclerView rvCategories, @NonNull RecyclerView rvContinueWatching,
       @NonNull RecyclerView rvMovies, @NonNull RecyclerView rvRecentlyAdded,
       @NonNull RecyclerView rvTvShows, @NonNull TextView tvAllCategories,
       @NonNull TextView tvAllContinue, @NonNull TextView tvAllRecent) {
     this.rootView = rootView;
-    this.btnRefresh = btnRefresh;
     this.ivBackdrop = ivBackdrop;
-    this.ivSearch = ivSearch;
-    this.ivSettings = ivSettings;
     this.rvCategories = rvCategories;
     this.rvContinueWatching = rvContinueWatching;
     this.rvMovies = rvMovies;
@@ -106,27 +92,9 @@ public final class FragmentHomeBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.btn_refresh;
-      ImageButton btnRefresh = ViewBindings.findChildViewById(rootView, id);
-      if (btnRefresh == null) {
-        break missingId;
-      }
-
       id = R.id.iv_backdrop;
       ImageView ivBackdrop = ViewBindings.findChildViewById(rootView, id);
       if (ivBackdrop == null) {
-        break missingId;
-      }
-
-      id = R.id.iv_search;
-      ImageView ivSearch = ViewBindings.findChildViewById(rootView, id);
-      if (ivSearch == null) {
-        break missingId;
-      }
-
-      id = R.id.iv_settings;
-      ImageView ivSettings = ViewBindings.findChildViewById(rootView, id);
-      if (ivSettings == null) {
         break missingId;
       }
 
@@ -178,9 +146,9 @@ public final class FragmentHomeBinding implements ViewBinding {
         break missingId;
       }
 
-      return new FragmentHomeBinding((FrameLayout) rootView, btnRefresh, ivBackdrop, ivSearch,
-          ivSettings, rvCategories, rvContinueWatching, rvMovies, rvRecentlyAdded, rvTvShows,
-          tvAllCategories, tvAllContinue, tvAllRecent);
+      return new FragmentHomeBinding((FrameLayout) rootView, ivBackdrop, rvCategories,
+          rvContinueWatching, rvMovies, rvRecentlyAdded, rvTvShows, tvAllCategories, tvAllContinue,
+          tvAllRecent);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
