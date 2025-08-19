@@ -200,7 +200,7 @@
                     android:id="@+id/tv_filename"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="人生开门红.2025.2160p.DV.WEB-DL.H265.60FPS.DTS.5.1.mp4"
+                    android:text="加载中..."
                     android:textSize="14sp"
                     android:textColor="@color/text_primary"
                     android:layout_marginBottom="8dp" />
@@ -210,7 +210,7 @@
                     android:id="@+id/tv_source_path"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="WebDAV: 我的WebDAV-/夸克网盘/电影电视/电影/"
+                    android:text="WebDAV: 加载中..."
                     android:textSize="14sp"
                     android:textColor="@color/text_primary"
                     android:layout_marginBottom="8dp" />

@@ -4,12 +4,12 @@
         "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\layout\\fragment_settings.xml"
     },
     {
-        "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-mergeDebugResources-62:\\layout\\item_media_poster.xml",
-        "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\layout\\item_media_poster.xml"
-    },
-    {
         "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-mergeDebugResources-62:\\layout\\fragment_main.xml",
         "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\layout\\fragment_main.xml"
+    },
+    {
+        "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-mergeDebugResources-62:\\layout\\item_media_poster.xml",
+        "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\layout\\item_media_poster.xml"
     },
     {
         "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-mergeDebugResources-62:\\layout\\fragment_home.xml",

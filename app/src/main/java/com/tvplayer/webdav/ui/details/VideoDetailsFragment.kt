@@ -18,6 +18,8 @@ import com.tvplayer.webdav.R
 import com.tvplayer.webdav.data.model.Actor
 import com.tvplayer.webdav.data.model.MediaItem
 import dagger.hilt.android.AndroidEntryPoint
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 /**
  * 视频详情页面Fragment
@@ -41,6 +43,11 @@ class VideoDetailsFragment : Fragment() {
     private lateinit var tvFileSize: TextView
     private lateinit var tvOverview: TextView
     private lateinit var movieInfoContainer: LinearLayout
+    private lateinit var scrollView: ScrollView
+
+    // 滚动位置常量
+    private val FIRST_SCREEN_HEIGHT = 600 // dp转换为px后使用
+    private var firstScreenHeightPx = 0
 
     // 演员表组件
     private var rvActors: RecyclerView? = null
@@ -100,6 +107,10 @@ class VideoDetailsFragment : Fragment() {
         tvFileSize = view.findViewById(R.id.tv_file_size)
         tvOverview = view.findViewById(R.id.tv_overview)
         movieInfoContainer = view.findViewById(R.id.movie_info_container)
+        scrollView = view.findViewById(R.id.scroll_view)
+
+        // 计算第一屏高度的像素值
+        firstScreenHeightPx = (FIRST_SCREEN_HEIGHT * resources.displayMetrics.density).toInt()
 
         // 初始化演员表相关组件（可选的，因为可能不存在）
         try {
@@ -178,9 +189,12 @@ class VideoDetailsFragment : Fragment() {
         
         // 设置演员表（如果存在）
         setupActorsIfAvailable()
-        
+
         // 设置视频详情信息（如果存在）
         setupVideoDetailsIfAvailable()
+
+        // 为演员表设置按键监听
+        setupActorsKeyListener()
     }
 
     private fun loadBackdropImage() {
@@ -247,6 +261,9 @@ class VideoDetailsFragment : Fragment() {
 
 
 
+        // 设置按键监听器来处理遥控器滚动
+        setupKeyListener(view)
+
         // 默认焦点设置到播放按钮
         btnPlay.requestFocus()
     }
@@ -291,7 +308,7 @@ class VideoDetailsFragment : Fragment() {
         // 设置文件名和技术信息（从filePath中提取文件名）
         tvFilename?.let { textView ->
             val fileName = try {
-                val path = mediaItem.filePath
+                val path = decodeFilePath(mediaItem.filePath)
                 if (path.isNotBlank()) {
                     val fullFileName = path.substringAfterLast('/')
                     if (fullFileName.isNotBlank()) {
@@ -307,17 +324,19 @@ class VideoDetailsFragment : Fragment() {
             }
             textView.text = fileName
         }
-        
+
         // 设置来源路径
         tvSourcePath?.let { textView ->
             val sourcePath = try {
-                val path = mediaItem.filePath
+                val path = decodeFilePath(mediaItem.filePath)
                 if (path.isNotBlank()) {
                     val lastSlashIndex = path.lastIndexOf('/')
                     if (lastSlashIndex > 0) {
-                        path.substring(0, lastSlashIndex + 1)
+                        // 格式化显示路径，添加前缀说明
+                        val directory = path.substring(0, lastSlashIndex + 1)
+                        "WebDAV: $directory"
                     } else {
-                        path
+                        "WebDAV: $path"
                     }
                 } else {
                     "未知路径"
@@ -350,9 +369,179 @@ class VideoDetailsFragment : Fragment() {
     }
 
     private fun scrollToTop() {
-        // 找到ScrollView并滚动到顶部
-        val scrollView = view?.findViewById<ScrollView>(R.id.scroll_view)
-        scrollView?.smoothScrollTo(0, 0)
+        scrollView.smoothScrollTo(0, 0)
+    }
+
+    private fun setupKeyListener(view: View) {
+        // 为整个根视图设置按键监听
+        view.isFocusableInTouchMode = true
+
+        view.setOnKeyListener { _, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                when (keyCode) {
+                    KeyEvent.KEYCODE_DPAD_DOWN -> {
+                        // 检查当前焦点是否在播放按钮上
+                        if (btnPlay.hasFocus()) {
+                            handleDownKey()
+                            true
+                        } else {
+                            false // 让其他控件处理
+                        }
+                    }
+                    KeyEvent.KEYCODE_DPAD_UP -> {
+                        // 任何时候按上键都直接回到顶部
+                        val currentScrollY = scrollView.scrollY
+                        if (currentScrollY > 50) { // 如果不在顶部
+                            scrollToTop()
+                            btnPlay.requestFocus()
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                    else -> false
+                }
+            } else {
+                false
+            }
+        }
+
+        // 也为播放按钮单独设置按键监听
+        btnPlay.setOnKeyListener { _, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                when (keyCode) {
+                    KeyEvent.KEYCODE_DPAD_DOWN -> {
+                        handleDownKey()
+                        true
+                    }
+                    KeyEvent.KEYCODE_DPAD_UP -> {
+                        // 播放按钮按上键时，如果不在顶部就滚动到顶部
+                        val currentScrollY = scrollView.scrollY
+                        if (currentScrollY > 50) {
+                            scrollToTop()
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                    else -> false
+                }
+            } else {
+                false
+            }
+        }
+    }
+
+    private fun handleDownKey() {
+        val currentScrollY = scrollView.scrollY
+
+        // 如果当前在第一屏（滚动位置小于第一屏高度的一半）
+        if (currentScrollY < firstScreenHeightPx / 2) {
+            // 直接滚动到第二屏（演员表区域）
+            scrollToSecondScreen()
+        } else {
+            // 如果已经在第二屏，继续正常滚动
+            scrollView.smoothScrollBy(0, 200)
+        }
+    }
+
+    private fun handleUpKey() {
+        val currentScrollY = scrollView.scrollY
+
+        // 如果当前滚动位置大于100px（说明不在顶部），直接滚动到顶部
+        if (currentScrollY > 100) {
+            // 直接滚动回第一屏顶部
+            scrollToTop()
+        } else {
+            // 如果已经在第一屏顶部，不做任何操作或者可以退出页面
+            // 这里可以添加退出逻辑，比如返回上一页
+        }
+    }
+
+    private fun scrollToSecondScreen() {
+        // 滚动到第二屏的开始位置（演员表区域）
+        scrollView.smoothScrollTo(0, firstScreenHeightPx)
+    }
+
+    private fun setupActorsKeyListener() {
+        rvActors?.setOnKeyListener { _, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                when (keyCode) {
+                    KeyEvent.KEYCODE_DPAD_UP -> {
+                        // 直接回到第一屏顶部，不管当前在演员表的哪个位置
+                        scrollToTop()
+                        // 将焦点设置回播放按钮
+                        btnPlay.requestFocus()
+                        true
+                    }
+                    else -> false
+                }
+            } else {
+                false
+            }
+        }
+
+        // 为返回顶部按钮设置按键监听
+        btnBackToTop?.setOnKeyListener { _, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                when (keyCode) {
+                    KeyEvent.KEYCODE_DPAD_UP -> {
+                        scrollToTop()
+                        // 将焦点设置回播放按钮
+                        btnPlay.requestFocus()
+                        true
+                    }
+                    else -> false
+                }
+            } else {
+                false
+            }
+        }
+    }
+
+    /**
+     * 解码文件路径，处理URL编码的中文字符
+     */
+    private fun decodeFilePath(filePath: String): String {
+        return try {
+            // 检查是否包含URL编码字符
+            if (!filePath.contains("%")) {
+                return filePath
+            }
+
+            // 首先尝试UTF-8解码
+            var decoded = URLDecoder.decode(filePath, StandardCharsets.UTF_8.toString())
+
+            // 如果还有编码字符，再次尝试解码（处理双重编码的情况）
+            var previousDecoded = decoded
+            while (decoded.contains("%")) {
+                try {
+                    decoded = URLDecoder.decode(decoded, StandardCharsets.UTF_8.toString())
+                    // 如果解码后没有变化，说明无法进一步解码，跳出循环
+                    if (decoded == previousDecoded) {
+                        break
+                    }
+                    previousDecoded = decoded
+                } catch (e: Exception) {
+                    break
+                }
+            }
+
+            decoded
+        } catch (e: Exception) {
+            // 如果UTF-8解码失败，尝试其他编码方式
+            try {
+                URLDecoder.decode(filePath, "GBK")
+            } catch (e2: Exception) {
+                try {
+                    // 最后尝试ISO-8859-1
+                    URLDecoder.decode(filePath, "ISO-8859-1")
+                } catch (e3: Exception) {
+                    // 如果都失败了，返回原始路径
+                    filePath
+                }
+            }
+        }
     }
 
 }

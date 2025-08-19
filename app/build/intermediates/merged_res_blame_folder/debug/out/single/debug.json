@@ -1,11 +1,11 @@
 [
     {
-        "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-merged_res-63:\\drawable_ic_launcher_round.xml.flat",
-        "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\drawable\\ic_launcher_round.xml"
-    },
-    {
         "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-merged_res-63:\\drawable_frosted_glass_modern.xml.flat",
         "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\drawable\\frosted_glass_modern.xml"
+    },
+    {
+        "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-merged_res-63:\\drawable_ic_launcher_round.xml.flat",
+        "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\drawable\\ic_launcher_round.xml"
     },
     {
         "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-merged_res-63:\\layout_item_media_poster.xml.flat",
@@ -44,12 +44,12 @@
         "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\layout\\activity_video_details.xml"
     },
     {
-        "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-merged_res-63:\\drawable_text_button_background.xml.flat",
-        "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\drawable\\text_button_background.xml"
-    },
-    {
         "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-merged_res-63:\\xml_backup_rules.xml.flat",
         "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\xml\\backup_rules.xml"
+    },
+    {
+        "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-merged_res-63:\\drawable_text_button_background.xml.flat",
+        "source": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-main-65:\\drawable\\text_button_background.xml"
     },
     {
         "merged": "C:\\Users\\caojian\\.gradle\\daemon\\8.5\\com.tvplayer.webdav.app-merged_res-63:\\drawable_button_secondary.xml.flat",

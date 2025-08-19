@@ -17,13 +17,15 @@ import com.tvplayer.webdav.R;
 import com.tvplayer.webdav.data.model.Actor;
 import com.tvplayer.webdav.data.model.MediaItem;
 import dagger.hilt.android.AndroidEntryPoint;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 视频详情页面Fragment
  * 根据设计图实现视频详情页面布局
  */
 @dagger.hilt.android.AndroidEntryPoint()
-@kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000^\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\n\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0010\u0002\n\u0002\b\u0005\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\t\b\u0007\u0018\u0000 42\u00020\u0001:\u00014B\u0005\u00a2\u0006\u0002\u0010\u0002J\u0010\u0010 \u001a\u00020!2\u0006\u0010\"\u001a\u00020\u0004H\u0002J\b\u0010#\u001a\u00020!H\u0002J\b\u0010$\u001a\u00020!H\u0002J\u0012\u0010%\u001a\u00020!2\b\u0010&\u001a\u0004\u0018\u00010\'H\u0016J&\u0010(\u001a\u0004\u0018\u00010\u00042\u0006\u0010)\u001a\u00020*2\b\u0010+\u001a\u0004\u0018\u00010,2\b\u0010&\u001a\u0004\u0018\u00010\'H\u0016J\u001a\u0010-\u001a\u00020!2\u0006\u0010\"\u001a\u00020\u00042\b\u0010&\u001a\u0004\u0018\u00010\'H\u0016J\b\u0010.\u001a\u00020!H\u0002J\b\u0010/\u001a\u00020!H\u0002J\b\u00100\u001a\u00020!H\u0002J\u0010\u00101\u001a\u00020!2\u0006\u0010\"\u001a\u00020\u0004H\u0002J\b\u00102\u001a\u00020!H\u0002J\b\u00103\u001a\u00020!H\u0002R\u0010\u0010\u0003\u001a\u0004\u0018\u00010\u0004X\u0082\u000e\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u0005\u001a\u00020\u0006X\u0082.\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u0007\u001a\u00020\bX\u0082.\u00a2\u0006\u0002\n\u0000R\u000e\u0010\t\u001a\u00020\nX\u0082.\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u000b\u001a\u00020\fX\u0082.\u00a2\u0006\u0002\n\u0000R\u0010\u0010\r\u001a\u0004\u0018\u00010\u000eX\u0082\u000e\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u000f\u001a\u00020\u0010X\u0082.\u00a2\u0006\u0002\n\u0000R\u0010\u0010\u0011\u001a\u0004\u0018\u00010\u0010X\u0082\u000e\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u0012\u001a\u00020\u0010X\u0082.\u00a2\u0006\u0002\n\u0000R\u0010\u0010\u0013\u001a\u0004\u0018\u00010\u0010X\u0082\u000e\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u0014\u001a\u00020\u0010X\u0082.\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u0015\u001a\u00020\u0010X\u0082.\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u0016\u001a\u00020\u0010X\u0082.\u00a2\u0006\u0002\n\u0000R\u0010\u0010\u0017\u001a\u0004\u0018\u00010\u0010X\u0082\u000e\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u0018\u001a\u00020\u0010X\u0082.\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u0019\u001a\u00020\u0010X\u0082.\u00a2\u0006\u0002\n\u0000R\u001b\u0010\u001a\u001a\u00020\u001b8BX\u0082\u0084\u0002\u00a2\u0006\f\n\u0004\b\u001e\u0010\u001f\u001a\u0004\b\u001c\u0010\u001d\u00a8\u00065"}, d2 = {"Lcom/tvplayer/webdav/ui/details/VideoDetailsFragment;", "Landroidx/fragment/app/Fragment;", "()V", "btnBackToTop", "Landroid/view/View;", "btnPlay", "Landroid/widget/Button;", "ivBackdrop", "Landroid/widget/ImageView;", "mediaItem", "Lcom/tvplayer/webdav/data/model/MediaItem;", "movieInfoContainer", "Landroid/widget/LinearLayout;", "rvActors", "Landroidx/recyclerview/widget/RecyclerView;", "tvDuration", "Landroid/widget/TextView;", "tvDurationSize", "tvFileSize", "tvFilename", "tvGenre", "tvOverview", "tvRating", "tvSourcePath", "tvTitle", "tvYear", "viewModel", "Lcom/tvplayer/webdav/ui/details/VideoDetailsViewModel;", "getViewModel", "()Lcom/tvplayer/webdav/ui/details/VideoDetailsViewModel;", "viewModel$delegate", "Lkotlin/Lazy;", "initViews", "", "view", "loadBackdropImage", "observeViewModel", "onCreate", "savedInstanceState", "Landroid/os/Bundle;", "onCreateView", "inflater", "Landroid/view/LayoutInflater;", "container", "Landroid/view/ViewGroup;", "onViewCreated", "scrollToTop", "setupActorsIfAvailable", "setupData", "setupListeners", "setupVideoDetailsIfAvailable", "startPlayback", "Companion", "app_debug"})
+@kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000t\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\b\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\n\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0010\u000e\n\u0002\b\u0002\n\u0002\u0010\u0002\n\u0002\b\u0007\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\f\b\u0007\u0018\u0000 A2\u00020\u0001:\u0001AB\u0005\u00a2\u0006\u0002\u0010\u0002J\u0010\u0010%\u001a\u00020&2\u0006\u0010\'\u001a\u00020&H\u0002J\b\u0010(\u001a\u00020)H\u0002J\b\u0010*\u001a\u00020)H\u0002J\u0010\u0010+\u001a\u00020)2\u0006\u0010,\u001a\u00020\u0006H\u0002J\b\u0010-\u001a\u00020)H\u0002J\b\u0010.\u001a\u00020)H\u0002J\u0012\u0010/\u001a\u00020)2\b\u00100\u001a\u0004\u0018\u000101H\u0016J&\u00102\u001a\u0004\u0018\u00010\u00062\u0006\u00103\u001a\u0002042\b\u00105\u001a\u0004\u0018\u0001062\b\u00100\u001a\u0004\u0018\u000101H\u0016J\u001a\u00107\u001a\u00020)2\u0006\u0010,\u001a\u00020\u00062\b\u00100\u001a\u0004\u0018\u000101H\u0016J\b\u00108\u001a\u00020)H\u0002J\b\u00109\u001a\u00020)H\u0002J\b\u0010:\u001a\u00020)H\u0002J\b\u0010;\u001a\u00020)H\u0002J\b\u0010<\u001a\u00020)H\u0002J\u0010\u0010=\u001a\u00020)2\u0006\u0010,\u001a\u00020\u0006H\u0002J\u0010\u0010>\u001a\u00020)2\u0006\u0010,\u001a\u00020\u0006H\u0002J\b\u0010?\u001a\u00020)H\u0002J\b\u0010@\u001a\u00020)H\u0002R\u000e\u0010\u0003\u001a\u00020\u0004X\u0082D\u00a2\u0006\u0002\n\u0000R\u0010\u0010\u0005\u001a\u0004\u0018\u00010\u0006X\u0082\u000e\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u0007\u001a\u00020\bX\u0082.\u00a2\u0006\u0002\n\u0000R\u000e\u0010\t\u001a\u00020\u0004X\u0082\u000e\u00a2\u0006\u0002\n\u0000R\u000e\u0010\n\u001a\u00020\u000bX\u0082.\u00a2\u0006\u0002\n\u0000R\u000e\u0010\f\u001a\u00020\rX\u0082.\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u000e\u001a\u00020\u000fX\u0082.\u00a2\u0006\u0002\n\u0000R\u0010\u0010\u0010\u001a\u0004\u0018\u00010\u0011X\u0082\u000e\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u0012\u001a\u00020\u0013X\u0082.\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u0014\u001a\u00020\u0015X\u0082.\u00a2\u0006\u0002\n\u0000R\u0010\u0010\u0016\u001a\u0004\u0018\u00010\u0015X\u0082\u000e\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u0017\u001a\u00020\u0015X\u0082.\u00a2\u0006\u0002\n\u0000R\u0010\u0010\u0018\u001a\u0004\u0018\u00010\u0015X\u0082\u000e\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u0019\u001a\u00020\u0015X\u0082.\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u001a\u001a\u00020\u0015X\u0082.\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u001b\u001a\u00020\u0015X\u0082.\u00a2\u0006\u0002\n\u0000R\u0010\u0010\u001c\u001a\u0004\u0018\u00010\u0015X\u0082\u000e\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u001d\u001a\u00020\u0015X\u0082.\u00a2\u0006\u0002\n\u0000R\u000e\u0010\u001e\u001a\u00020\u0015X\u0082.\u00a2\u0006\u0002\n\u0000R\u001b\u0010\u001f\u001a\u00020 8BX\u0082\u0084\u0002\u00a2\u0006\f\n\u0004\b#\u0010$\u001a\u0004\b!\u0010\"\u00a8\u0006B"}, d2 = {"Lcom/tvplayer/webdav/ui/details/VideoDetailsFragment;", "Landroidx/fragment/app/Fragment;", "()V", "FIRST_SCREEN_HEIGHT", "", "btnBackToTop", "Landroid/view/View;", "btnPlay", "Landroid/widget/Button;", "firstScreenHeightPx", "ivBackdrop", "Landroid/widget/ImageView;", "mediaItem", "Lcom/tvplayer/webdav/data/model/MediaItem;", "movieInfoContainer", "Landroid/widget/LinearLayout;", "rvActors", "Landroidx/recyclerview/widget/RecyclerView;", "scrollView", "Landroid/widget/ScrollView;", "tvDuration", "Landroid/widget/TextView;", "tvDurationSize", "tvFileSize", "tvFilename", "tvGenre", "tvOverview", "tvRating", "tvSourcePath", "tvTitle", "tvYear", "viewModel", "Lcom/tvplayer/webdav/ui/details/VideoDetailsViewModel;", "getViewModel", "()Lcom/tvplayer/webdav/ui/details/VideoDetailsViewModel;", "viewModel$delegate", "Lkotlin/Lazy;", "decodeFilePath", "", "filePath", "handleDownKey", "", "handleUpKey", "initViews", "view", "loadBackdropImage", "observeViewModel", "onCreate", "savedInstanceState", "Landroid/os/Bundle;", "onCreateView", "inflater", "Landroid/view/LayoutInflater;", "container", "Landroid/view/ViewGroup;", "onViewCreated", "scrollToSecondScreen", "scrollToTop", "setupActorsIfAvailable", "setupActorsKeyListener", "setupData", "setupKeyListener", "setupListeners", "setupVideoDetailsIfAvailable", "startPlayback", "Companion", "app_debug"})
 public final class VideoDetailsFragment extends androidx.fragment.app.Fragment {
     @org.jetbrains.annotations.NotNull()
     private final kotlin.Lazy viewModel$delegate = null;
@@ -38,6 +40,9 @@ public final class VideoDetailsFragment extends androidx.fragment.app.Fragment {
     private android.widget.TextView tvFileSize;
     private android.widget.TextView tvOverview;
     private android.widget.LinearLayout movieInfoContainer;
+    private android.widget.ScrollView scrollView;
+    private final int FIRST_SCREEN_HEIGHT = 600;
+    private int firstScreenHeightPx = 0;
     @org.jetbrains.annotations.Nullable()
     private androidx.recyclerview.widget.RecyclerView rvActors;
     @org.jetbrains.annotations.Nullable()
@@ -106,6 +111,28 @@ public final class VideoDetailsFragment extends androidx.fragment.app.Fragment {
     }
     
     private final void scrollToTop() {
+    }
+    
+    private final void setupKeyListener(android.view.View view) {
+    }
+    
+    private final void handleDownKey() {
+    }
+    
+    private final void handleUpKey() {
+    }
+    
+    private final void scrollToSecondScreen() {
+    }
+    
+    private final void setupActorsKeyListener() {
+    }
+    
+    /**
+     * 解码文件路径，处理URL编码的中文字符
+     */
+    private final java.lang.String decodeFilePath(java.lang.String filePath) {
+        return null;
     }
     
     @kotlin.Metadata(mv = {1, 9, 0}, k = 1, xi = 48, d1 = {"\u0000\u001e\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0002\n\u0002\u0010\u000e\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\b\u0086\u0003\u0018\u00002\u00020\u0001B\u0007\b\u0002\u00a2\u0006\u0002\u0010\u0002J\u000e\u0010\u0005\u001a\u00020\u00062\u0006\u0010\u0007\u001a\u00020\bR\u000e\u0010\u0003\u001a\u00020\u0004X\u0082T\u00a2\u0006\u0002\n\u0000\u00a8\u0006\t"}, d2 = {"Lcom/tvplayer/webdav/ui/details/VideoDetailsFragment$Companion;", "", "()V", "ARG_MEDIA_ITEM", "", "newInstance", "Lcom/tvplayer/webdav/ui/details/VideoDetailsFragment;", "mediaItem", "Lcom/tvplayer/webdav/data/model/MediaItem;", "app_debug"})
