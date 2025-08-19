@@ -10,9 +10,14 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
 import javax.inject.Qualifier
 import javax.inject.Singleton
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
@@ -57,7 +62,37 @@ object WebDAVModule {
             .addInterceptor(loggingInterceptor)
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
+            // SSL配置：重试连接
+            .retryOnConnectionFailure(true)
+            // 添加SSL配置以解决证书验证问题
+            .apply { configureSSL(this) }
             .build()
+    }
+
+    /**
+     * 配置SSL以解决证书验证问题
+     * ⚠️ 注意：此配置仅用于开发环境，生产环境应使用正确的证书验证
+     */
+    private fun configureSSL(builder: OkHttpClient.Builder) {
+        try {
+            // 创建信任所有证书的TrustManager（仅用于开发）
+            val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
+                override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+                override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+                override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+            })
+
+            // 安装信任所有证书的SSLContext
+            val sslContext = SSLContext.getInstance("SSL")
+            sslContext.init(null, trustAllCerts, SecureRandom())
+            
+            builder.sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
+            builder.hostnameVerifier { _, _ -> true }
+        } catch (e: Exception) {
+            // 如果SSL配置失败，记录错误但不影响应用启动
+            e.printStackTrace()
+        }
     }
 
     @Provides

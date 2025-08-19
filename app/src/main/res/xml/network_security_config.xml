@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
     <!-- 仅用于开发调试：允许所有明文流量。发布版本请改为只允许特定域名或改用HTTPS。 -->
-    <base-config cleartextTrafficPermitted="true" />
+    <base-config cleartextTrafficPermitted="true">
+        <!-- 信任系统证书和用户添加的证书 -->
+        <trust-anchors>
+            <certificates src="system"/>
+            <certificates src="user"/>
+        </trust-anchors>
+    </base-config>
+    
+    <!-- 针对TMDB API的特殊配置 -->
+    <domain-config>
+        <domain includeSubdomains="true">api.themoviedb.org</domain>
+        <domain includeSubdomains="true">image.tmdb.org</domain>
+        <trust-anchors>
+            <certificates src="system"/>
+            <certificates src="user"/>
+        </trust-anchors>
+    </domain-config>
 </network-security-config>
 
