@@ -67,8 +67,7 @@ public final class TmdbClient {
     
     /**
      * 生成电影搜索候选：
-     * 1) 清洗标题（去扩展名/噪声/分隔符）
-     * 2) 基于 tokens 逐步组合（单词→前缀组合）
+     * - 按“之前逻辑”的思路：先清洗噪声，再按 tokens 由长到短组合；同时保留带年份和不带年份两类
      */
     private final java.util.List<java.lang.String> generateMovieCandidates(java.lang.String fileName) {
         return null;

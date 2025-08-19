@@ -97,6 +97,7 @@ MERGED from [androidx.arch.core:core-runtime:2.2.0] C:\Users\caojian\.gradle\cac
 MERGED from [androidx.documentfile:documentfile:1.0.0] C:\Users\caojian\.gradle\caches\transforms-3\7514f08be00900e13ae29c0199373acc\transformed\documentfile-1.0.0\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] C:\Users\caojian\.gradle\caches\transforms-3\19b3ed9e0e3a115d58741842280cfc0f\transformed\localbroadcastmanager-1.0.0\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.print:print:1.0.0] C:\Users\caojian\.gradle\caches\transforms-3\a186b940e47c875dce29cc5cae3e81ab\transformed\print-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [com.github.thegrizzlylabs:sardine-android:0.8] C:\Users\caojian\.gradle\caches\transforms-3\e9c43a856f2bba4c106be8ca12a42d16\transformed\sardine-android-0.8\AndroidManifest.xml:2:1-7:12
 MERGED from [com.google.dagger:dagger-lint-aar:2.48] C:\Users\caojian\.gradle\caches\transforms-3\a3eb4bf8b2570e9e4553374c5325f104\transformed\dagger-lint-aar-2.48\AndroidManifest.xml:16:1-19:12
 	package
 		INJECTED from E:\1-test\android-tv-player\app\src\main\AndroidManifest.xml
@@ -433,6 +434,8 @@ MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] C:\User
 MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] C:\Users\caojian\.gradle\caches\transforms-3\19b3ed9e0e3a115d58741842280cfc0f\transformed\localbroadcastmanager-1.0.0\AndroidManifest.xml:20:5-44
 MERGED from [androidx.print:print:1.0.0] C:\Users\caojian\.gradle\caches\transforms-3\a186b940e47c875dce29cc5cae3e81ab\transformed\print-1.0.0\AndroidManifest.xml:20:5-44
 MERGED from [androidx.print:print:1.0.0] C:\Users\caojian\.gradle\caches\transforms-3\a186b940e47c875dce29cc5cae3e81ab\transformed\print-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [com.github.thegrizzlylabs:sardine-android:0.8] C:\Users\caojian\.gradle\caches\transforms-3\e9c43a856f2bba4c106be8ca12a42d16\transformed\sardine-android-0.8\AndroidManifest.xml:5:5-44
+MERGED from [com.github.thegrizzlylabs:sardine-android:0.8] C:\Users\caojian\.gradle\caches\transforms-3\e9c43a856f2bba4c106be8ca12a42d16\transformed\sardine-android-0.8\AndroidManifest.xml:5:5-44
 MERGED from [com.google.dagger:dagger-lint-aar:2.48] C:\Users\caojian\.gradle\caches\transforms-3\a3eb4bf8b2570e9e4553374c5325f104\transformed\dagger-lint-aar-2.48\AndroidManifest.xml:18:3-42
 MERGED from [com.google.dagger:dagger-lint-aar:2.48] C:\Users\caojian\.gradle\caches\transforms-3\a3eb4bf8b2570e9e4553374c5325f104\transformed\dagger-lint-aar-2.48\AndroidManifest.xml:18:3-42
 	android:targetSdkVersion

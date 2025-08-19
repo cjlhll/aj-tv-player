@@ -3,9 +3,8 @@
 .gradle/
 
 # Module and app build outputs
-**/build/
-**/outputs/
-**/captures/
+app/build/
+build/
 
 # Native/NDK build folders
 **/.externalNativeBuild/
