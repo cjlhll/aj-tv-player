@@ -1,0 +1,61 @@
+# ===== Android / Gradle =====
+# Gradle build cache and local files
+.gradle/
+
+# Module and app build outputs
+**/build/
+**/outputs/
+**/captures/
+
+# Native/NDK build folders
+**/.externalNativeBuild/
+**/.cxx/
+
+# Local machine config
+local.properties
+
+# Logs
+*.log
+
+# APKs / bundles generated locally
+*.apk
+*.ap_
+*.aab
+
+# ProGuard / R8
+**/mapping.txt
+
+# ===== IDE / Editors =====
+# IntelliJ / Android Studio project files that should not be versioned
+*.iml
+*.ipr
+*.iws
+
+# Only ignore volatile .idea files/folders; keep shareable project settings if needed
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries/
+.idea/**/shelf/
+.idea/**/httpRequests/
+.idea/**/caches/
+.idea/**/libraries/
+.idea/**/gradle.xml
+.idea/**/jarRepositories.xml
+.idea/**/navEditor.xml
+.idea/**/assetWizardSettings.xml
+.idea/**/deploymentTargetDropDown.xml
+
+# VS Code
+.vscode/
+
+# ===== OS junk =====
+.DS_Store
+Thumbs.db
+
+# ===== Keys / Signing (keep secrets out of VCS) =====
+*.keystore
+*.jks
+keystore.properties
+signing.properties
+
