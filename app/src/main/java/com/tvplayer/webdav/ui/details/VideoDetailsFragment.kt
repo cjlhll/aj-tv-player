@@ -168,17 +168,24 @@ class VideoDetailsFragment : Fragment() {
             tvYear.text = "未知日期"
         }
         
-        // 设置时长
-        if (mediaItem.duration > 0) {
-            val hours = mediaItem.duration / 3600
-            val minutes = (mediaItem.duration % 3600) / 60
-            tvDuration.text = if (hours > 0) {
-                "${hours}小时${minutes}分钟"
-            } else {
-                "${minutes}分钟"
-            }
+        // 设置时长（TV系列显示 总X集（库中有Y集），电影显示时长）
+        if (viewModel.isTVSeries()) {
+            val total = viewModel.tmdbTotalEpisodes.value ?: 0
+            val local = viewModel.localAvailableEpisodes.value ?: 0
+            tvDuration.text = "总${total}集（库中有${local}集）"
+            tvDuration.visibility = View.VISIBLE
         } else {
-            tvDuration.visibility = View.GONE
+            if (mediaItem.duration > 0) {
+                val hours = mediaItem.duration / 3600
+                val minutes = (mediaItem.duration % 3600) / 60
+                tvDuration.text = if (hours > 0) {
+                    "${hours}小时${minutes}分钟"
+                } else {
+                    "${minutes}分钟"
+                }
+            } else {
+                tvDuration.visibility = View.GONE
+            }
         }
         
         // 设置类型
@@ -362,6 +369,28 @@ class VideoDetailsFragment : Fragment() {
                 updateMediaItemDisplay(it)
                 // 设置TV系列相关UI（在MediaItem数据加载后）
                 setupTVSeriesUI()
+
+                // 刷新基于集数的显示（例如 总X集（库中有Y集））
+                if (viewModel.isTVSeries()) {
+                    val total = viewModel.tmdbTotalEpisodes.value ?: 0
+                    val local = viewModel.localAvailableEpisodes.value ?: 0
+                    tvDuration.text = "总${total}集（库中有${local}集）"
+                    tvDurationSize?.text = "总${total}集（库中有${local}集） 其他 ${tvFileSize.text}"
+                }
+            }
+        }
+
+        // 观察集数计数变化，实时刷新显示
+        viewModel.tmdbTotalEpisodes.observe(viewLifecycleOwner) { total ->
+            if (viewModel.isTVSeries()) {
+                val local = viewModel.localAvailableEpisodes.value ?: 0
+                tvDuration.text = "总${total}集（库中有${local}集）"
+            }
+        }
+        viewModel.localAvailableEpisodes.observe(viewLifecycleOwner) { local ->
+            if (viewModel.isTVSeries()) {
+                val total = viewModel.tmdbTotalEpisodes.value ?: 0
+                tvDuration.text = "总${total}集（库中有${local}集）"
             }
         }
 
@@ -443,17 +472,24 @@ class VideoDetailsFragment : Fragment() {
             tvYear.text = "未知日期"
         }
         
-        // 更新时长
-        if (updatedMediaItem.duration > 0) {
-            val hours = updatedMediaItem.duration / 3600
-            val minutes = (updatedMediaItem.duration % 3600) / 60
-            tvDuration.text = if (hours > 0) {
-                "${hours}小时${minutes}分钟"
-            } else {
-                "${minutes}分钟"
-            }
+        // 更新时长（TV系列显示 总X集（库中有Y集），电影显示时长）
+        if (viewModel.isTVSeries()) {
+            val total = viewModel.tmdbTotalEpisodes.value ?: 0
+            val local = viewModel.localAvailableEpisodes.value ?: 0
+            tvDuration.text = "总${total}集（库中有${local}集）"
+            tvDuration.visibility = View.VISIBLE
         } else {
-            tvDuration.visibility = View.GONE
+            if (updatedMediaItem.duration > 0) {
+                val hours = updatedMediaItem.duration / 3600
+                val minutes = (updatedMediaItem.duration % 3600) / 60
+                tvDuration.text = if (hours > 0) {
+                    "${hours}小时${minutes}分钟"
+                } else {
+                    "${minutes}分钟"
+                }
+            } else {
+                tvDuration.visibility = View.GONE
+            }
         }
         
         // 更新类型
@@ -535,23 +571,29 @@ class VideoDetailsFragment : Fragment() {
             textView.text = sourcePath
         }
         
-        // 设置时长和大小
+        // 设置时长和大小（TV系列显示 总X集（库中有Y集）+ 总大小；电影保持原样）
         tvDurationSize?.let { textView ->
-            val durationText = if (mediaItem.duration > 0) {
-                val hours = mediaItem.duration / 3600
-                val minutes = (mediaItem.duration % 3600) / 60
-                if (hours > 0) "${hours}小时${minutes}分钟" else "${minutes}分钟"
+            val durationText = if (viewModel.isTVSeries()) {
+                val total = viewModel.tmdbTotalEpisodes.value ?: 0
+                val local = viewModel.localAvailableEpisodes.value ?: 0
+                "总${total}集（库中有${local}集）"
             } else {
-                "未知时长"
+                if (mediaItem.duration > 0) {
+                    val hours = mediaItem.duration / 3600
+                    val minutes = (mediaItem.duration % 3600) / 60
+                    if (hours > 0) "${hours}小时${minutes}分钟" else "${minutes}分钟"
+                } else {
+                    "未知时长"
+                }
             }
-            
+
             val sizeText = if (mediaItem.fileSize > 0) {
                 val sizeInGB = mediaItem.fileSize / (1024.0 * 1024.0 * 1024.0)
                 String.format("%.2f GB", sizeInGB)
             } else {
                 "未知大小"
             }
-            
+
             textView.text = "$durationText 其他 $sizeText"
         }
     }

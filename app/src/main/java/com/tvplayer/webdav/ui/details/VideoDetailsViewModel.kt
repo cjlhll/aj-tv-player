@@ -52,6 +52,13 @@ class VideoDetailsViewModel @Inject constructor(
     private val _isLoadingEpisodes = MutableLiveData<Boolean>()
     val isLoadingEpisodes: LiveData<Boolean> = _isLoadingEpisodes
 
+    // 电视剧集数（TMDB总集数 和 本地可用集数）
+    private val _tmdbTotalEpisodes = MutableLiveData<Int>()
+    val tmdbTotalEpisodes: LiveData<Int> = _tmdbTotalEpisodes
+
+    private val _localAvailableEpisodes = MutableLiveData<Int>()
+    val localAvailableEpisodes: LiveData<Int> = _localAvailableEpisodes
+
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
     /**
@@ -65,7 +72,7 @@ class VideoDetailsViewModel @Inject constructor(
             try {
                 _isLoading.value = true
                 _error.value = null
-                
+
                 // 从TMDB加载详细信息和演员数据
                 when (mediaItem.mediaType) {
                     MediaType.MOVIE -> {
@@ -76,7 +83,7 @@ class VideoDetailsViewModel @Inject constructor(
                             val movieDetails = tmdbClient.getMovieDetailsWithCast(movieId)
                             if (movieDetails != null) {
                                 val (tmdbMovie, cast) = movieDetails
-                                
+
                                 // 更新MediaItem信息
                                 val updatedMediaItem = mediaItem.copy(
                                     title = tmdbMovie.title,
@@ -84,18 +91,18 @@ class VideoDetailsViewModel @Inject constructor(
                                     overview = tmdbMovie.overview ?: "暂无简介",
                                     rating = tmdbMovie.voteAverage,
                                     duration = (tmdbMovie.runtime ?: 0) * 60L,
-                                    genre = tmdbMovie.genres?.map { it.name } ?: emptyList()
+                                    genre = normalizeGenres(tmdbMovie.genres?.map { it.name } ?: emptyList())
                                 )
                                 _mediaItem.value = updatedMediaItem
-                                
+
                                 // 转换演员信息
                                 val actors = cast.map { tmdbCast ->
                                     Actor(
                                         id = tmdbCast.id.toString(),
                                         name = tmdbCast.name,
                                         role = tmdbCast.character,
-                                        avatarUrl = tmdbCast.profilePath?.let { 
-                                            "${com.tvplayer.webdav.data.tmdb.TmdbApiService.IMAGE_BASE_URL}${com.tvplayer.webdav.data.tmdb.TmdbApiService.POSTER_SIZE_W500}$it" 
+                                        avatarUrl = tmdbCast.profilePath?.let {
+                                            "${com.tvplayer.webdav.data.tmdb.TmdbApiService.IMAGE_BASE_URL}${com.tvplayer.webdav.data.tmdb.TmdbApiService.POSTER_SIZE_W500}$it"
                                         },
                                         isDirector = false
                                     )
@@ -104,7 +111,7 @@ class VideoDetailsViewModel @Inject constructor(
                             }
                         }
                     }
-                    
+
                     MediaType.TV_EPISODE -> {
                         // 提取电视剧ID
                         val tvId = mediaItem.seriesId?.removePrefix("tv_")?.toIntOrNull()
@@ -114,12 +121,23 @@ class VideoDetailsViewModel @Inject constructor(
                             if (tvDetails != null) {
                                 val (tmdbTV, cast) = tvDetails
 
-                                // 更新MediaItem信息
+                                // 记录TMDB总集数 和 本地可用集数
+                                val seriesId = mediaItem.seriesId ?: "tv_$tvId"
+                                val tmdbTotal = tmdbTV.numberOfEpisodes ?: 0
+                                val localAvailable = getTotalAvailableEpisodesForSeries(seriesId)
+                                _tmdbTotalEpisodes.value = tmdbTotal
+                                _localAvailableEpisodes.value = localAvailable
+
+                                // 计算本地所有剧集总大小
+                                val totalFileSize = getTotalFileSizeForSeries(seriesId)
+
+                                // 更新MediaItem信息（保持电影相同字段；文件大小使用聚合总大小）
                                 val updatedMediaItem = mediaItem.copy(
                                     originalTitle = tmdbTV.originalName,
                                     overview = tmdbTV.overview ?: "暂无简介",
                                     rating = tmdbTV.voteAverage,
-                                    genre = tmdbTV.genres?.map { it.name } ?: emptyList()
+                                    fileSize = totalFileSize,
+                                    genre = normalizeGenres(tmdbTV.genres?.map { it.name } ?: emptyList())
                                 )
                                 _mediaItem.value = updatedMediaItem
 
@@ -140,9 +158,9 @@ class VideoDetailsViewModel @Inject constructor(
                                 // 加载季信息
                                 loadTVSeasons(tvId)
 
-                                // 记录可用剧集总数
-                                val totalAvailable = getTotalAvailableEpisodesForSeries(mediaItem.seriesId ?: "tv_$tvId")
-                                android.util.Log.d("VideoDetailsViewModel", "Total available episodes for series: $totalAvailable")
+                                // 记录可用剧集总数（已通过LiveData记录）
+                                val totalAvailable = _localAvailableEpisodes.value ?: 0
+                                android.util.Log.d("VideoDetailsViewModel", "Total available episodes for series: $totalAvailable; TMDB total=${_tmdbTotalEpisodes.value}")
 
                                 // 设置当前季（如果有季数信息）
                                 mediaItem.seasonNumber?.let { seasonNum ->
@@ -152,12 +170,12 @@ class VideoDetailsViewModel @Inject constructor(
                             }
                         }
                     }
-                    
+
                     else -> {
                         // 其他类型暂时不做处理
                     }
                 }
-                
+
                 _isLoading.value = false
             } catch (e: Exception) {
                 _error.value = e.message
@@ -343,6 +361,53 @@ class VideoDetailsViewModel @Inject constructor(
     }
 
     /**
+     * 将TMDB的类型名称标准化为中文，统一显示格式
+     */
+    private fun normalizeGenres(raw: List<String>): List<String> {
+        if (raw.isEmpty()) return emptyList()
+        val mapping = mapOf(
+            // Movies & TV common
+            "Action" to "动作",
+            "Adventure" to "冒险",
+            "Animation" to "动画",
+            "Comedy" to "喜剧",
+            "Crime" to "犯罪",
+            "Documentary" to "纪录片",
+            "Drama" to "剧情",
+            "Family" to "家庭",
+            "Fantasy" to "奇幻",
+            "History" to "历史",
+            "Horror" to "恐怖",
+            "Music" to "音乐",
+            "Mystery" to "悬疑",
+            "Romance" to "爱情",
+            "Science Fiction" to "科幻",
+            "Sci-Fi & Fantasy" to "科幻",
+            "TV Movie" to "电视电影",
+            "Thriller" to "惊悚",
+            "War" to "战争",
+            "Western" to "西部",
+            // TV specific
+            "Action & Adventure" to "动作冒险",
+            "Kids" to "儿童",
+            "News" to "新闻",
+            "Reality" to "真人秀",
+            "Sci-Fi & Fantasy" to "科幻",
+            "Soap" to "肥皂剧",
+            "Talk" to "脱口秀",
+            "War & Politics" to "战争与政治"
+        )
+        // 不拆分复合类型，直接按映射转换（例如 Sci-Fi & Fantasy -> 科幻）
+        val translated = raw.map { eng ->
+            when (eng) {
+                "Politics" -> "政治"
+                else -> mapping[eng] ?: eng
+            }
+        }
+        // Remove duplicates and keep order
+        return translated.distinct()
+    }
+/**
      * 根据集数匹配MediaItem文件
      */
     private fun findMatchingMediaItem(availableItems: List<MediaItem>, episodeNumber: Int): MediaItem? {
@@ -350,7 +415,7 @@ class VideoDetailsViewModel @Inject constructor(
     }
 
     /**
-     * 获取指定系列的所有可用剧集总数（用于调试）
+     * 获取指定系列的所有可用剧集总数
      */
     private fun getTotalAvailableEpisodesForSeries(seriesId: String): Int {
         val allItems = mediaCache.getItems()
@@ -359,5 +424,17 @@ class VideoDetailsViewModel @Inject constructor(
             mediaItem.seriesId == seriesId &&
             mediaItem.filePath.isNotEmpty()
         }
+    }
+
+    /**
+     * 获取指定系列的所有剧集文件总大小
+     */
+    private fun getTotalFileSizeForSeries(seriesId: String): Long {
+        val allItems = mediaCache.getItems()
+        return allItems.filter { mediaItem ->
+            mediaItem.mediaType == MediaType.TV_EPISODE &&
+            mediaItem.seriesId == seriesId &&
+            mediaItem.filePath.isNotEmpty()
+        }.sumOf { it.fileSize }
     }
 }

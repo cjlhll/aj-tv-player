@@ -54,7 +54,6 @@
                     android:id="@+id/tv_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="电影标题"
                     android:textSize="42sp"
                     android:textColor="@color/text_primary"
                     android:textStyle="bold"
@@ -75,7 +74,6 @@
                         android:id="@+id/tv_rating"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="6.1"
                         android:textSize="14sp"
                         android:textColor="@color/text_primary"
                         android:background="@drawable/rating_badge_background"
@@ -90,7 +88,6 @@
                         android:id="@+id/tv_year"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="2025"
                         android:textSize="16sp"
                         android:textColor="@color/text_primary"
                         android:layout_marginEnd="16dp" />
@@ -100,7 +97,6 @@
                         android:id="@+id/tv_duration"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="1小时54分钟"
                         android:textSize="16sp"
                         android:textColor="@color/text_primary"
                         android:layout_marginEnd="16dp" />
@@ -110,7 +106,6 @@
                         android:id="@+id/tv_genre"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="剧情 喜剧"
                         android:textSize="16sp"
                         android:textColor="@color/text_primary"
                         android:layout_marginEnd="16dp" />
@@ -120,7 +115,6 @@
                         android:id="@+id/tv_file_size"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="24.07 GB"
                         android:textSize="16sp"
                         android:textColor="@color/text_primary" />
 
@@ -131,11 +125,12 @@
                     android:id="@+id/tv_overview"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="这里是电影简介内容..."
                     android:textSize="16sp"
                     android:textColor="@color/text_primary"
                     android:lineSpacingExtra="4dp"
-                    android:layout_marginBottom="24dp" />
+                    android:layout_marginBottom="24dp"
+                    android:maxLines="2"
+                    android:ellipsize="end" />
 
                 <!-- 播放按钮 -->
                 <Button
@@ -259,7 +254,6 @@
                     android:id="@+id/tv_filename"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="加载中..."
                     android:textSize="14sp"
                     android:textColor="@color/text_primary"
                     android:layout_marginBottom="8dp" />
@@ -269,7 +263,6 @@
                     android:id="@+id/tv_source_path"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="WebDAV: 加载中..."
                     android:textSize="14sp"
                     android:textColor="@color/text_primary"
                     android:layout_marginBottom="8dp" />
@@ -279,7 +272,6 @@
                     android:id="@+id/tv_duration_size"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="1小时54分钟 其他 24.07 GB"
                     android:textSize="14sp"
                     android:textColor="@color/text_primary" />
 
