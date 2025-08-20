@@ -57,6 +57,9 @@
         android:paddingEnd="8dp"
         android:paddingTop="2dp"
         android:paddingBottom="2dp"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:maxWidth="120dp"
         android:visibility="visible" />
 
 </LinearLayout>

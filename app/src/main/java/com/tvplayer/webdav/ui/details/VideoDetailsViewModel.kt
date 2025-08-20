@@ -8,7 +8,9 @@ import com.tvplayer.webdav.data.model.Actor
 import com.tvplayer.webdav.data.model.Episode
 import com.tvplayer.webdav.data.model.MediaItem
 import com.tvplayer.webdav.data.model.MediaType
+import com.tvplayer.webdav.data.model.PlaybackState
 import com.tvplayer.webdav.data.storage.MediaCache
+import com.tvplayer.webdav.data.storage.PlaybackStateManager
 import com.tvplayer.webdav.data.tmdb.TmdbClient
 import com.tvplayer.webdav.data.tmdb.TmdbSeason
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +26,8 @@ import javax.inject.Inject
 @HiltViewModel
 class VideoDetailsViewModel @Inject constructor(
     private val tmdbClient: TmdbClient,
-    private val mediaCache: MediaCache
+    private val mediaCache: MediaCache,
+    private val playbackStateManager: PlaybackStateManager
 ) : ViewModel() {
 
     private val _mediaItem = MutableLiveData<MediaItem>()
@@ -436,5 +439,61 @@ class VideoDetailsViewModel @Inject constructor(
             mediaItem.seriesId == seriesId &&
             mediaItem.filePath.isNotEmpty()
         }.sumOf { it.fileSize }
+    }
+
+    /**
+     * 获取所有媒体项目
+     */
+    fun getAllMediaItems(): List<MediaItem> {
+        return mediaCache.getItems()
+    }
+
+    /**
+     * 获取指定系列的播放状态
+     */
+    fun getPlaybackState(seriesId: String): PlaybackState? {
+        return playbackStateManager.getPlaybackState(seriesId)
+    }
+
+    /**
+     * 保存播放状态
+     */
+    fun savePlaybackState(playbackState: PlaybackState) {
+        playbackStateManager.savePlaybackState(playbackState)
+    }
+
+    /**
+     * 开始播放指定剧集
+     */
+    fun startPlayback(seriesId: String, seasonNumber: Int, episodeNumber: Int, duration: Long = 0L) {
+        playbackStateManager.startPlayback(seriesId, seasonNumber, episodeNumber, duration)
+    }
+
+    /**
+     * 更新播放进度
+     */
+    fun updatePlaybackProgress(seriesId: String, progress: Long, duration: Long = 0L) {
+        playbackStateManager.updatePlaybackProgress(seriesId, progress, duration)
+    }
+
+    /**
+     * 切换到下一集
+     */
+    fun switchToNextEpisode(seriesId: String, nextSeasonNumber: Int, nextEpisodeNumber: Int) {
+        playbackStateManager.switchToNextEpisode(seriesId, nextSeasonNumber, nextEpisodeNumber)
+    }
+
+    /**
+     * 获取当前播放状态的LiveData
+     */
+    fun getCurrentPlaybackState(): LiveData<PlaybackState?> {
+        return playbackStateManager.currentPlaybackState
+    }
+
+    /**
+     * 检查指定系列是否有播放状态
+     */
+    fun hasPlaybackState(seriesId: String): Boolean {
+        return playbackStateManager.hasPlaybackState(seriesId)
     }
 }

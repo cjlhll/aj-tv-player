@@ -26,6 +26,16 @@ class EpisodeAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EpisodeViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_media_poster, parent, false)
+
+        // Modify the CardView to use 16:9 aspect ratio for episodes
+        val cardView = view.findViewById<androidx.cardview.widget.CardView>(R.id.card_view)
+        val cardParams = cardView.layoutParams
+        val episodeWidth = 280 // Wider for 16:9 aspect ratio
+        val episodeHeight = (episodeWidth * 9 / 16) // Calculate 16:9 height = 157.5 ≈ 158
+        cardParams.width = episodeWidth
+        cardParams.height = episodeHeight
+        cardView.layoutParams = cardParams
+
         return EpisodeViewHolder(view, onEpisodeClick, onItemFocused)
     }
 

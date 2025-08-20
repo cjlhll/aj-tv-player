@@ -53,13 +53,19 @@ class ActorAdapter(
 
         fun bind(actor: Actor) {
             tvActorName.text = actor.name
-            
-            // 设置角色标签
+
+            // 设置角色标签，包含角色名称
             if (actor.isDirector) {
                 tvActorRole.text = "导演"
                 tvActorRole.background = itemView.context.getDrawable(R.drawable.director_badge_background)
             } else {
-                tvActorRole.text = "饰"
+                // 显示格式：[Actor Name] 饰 [Character Name]
+                val roleText = if (actor.role.isNotBlank()) {
+                    "饰 ${actor.role}"
+                } else {
+                    "饰"
+                }
+                tvActorRole.text = roleText
                 tvActorRole.background = itemView.context.getDrawable(R.drawable.role_badge_background)
             }
 

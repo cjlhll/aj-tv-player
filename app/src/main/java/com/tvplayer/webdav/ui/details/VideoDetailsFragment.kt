@@ -226,6 +226,9 @@ class VideoDetailsFragment : Fragment() {
 
         // 为演员表设置按键监听
         setupActorsKeyListener()
+
+        // 观察播放状态变化，动态更新视频详情
+        setupPlaybackStateObserver()
     }
 
     private fun loadBackdropImage() {
@@ -364,18 +367,23 @@ class VideoDetailsFragment : Fragment() {
         // 观察媒体项目数据变化
         viewModel.mediaItem.observe(viewLifecycleOwner) { updatedMediaItem ->
             android.util.Log.d("VideoDetailsFragment", "MediaItem observer triggered: $updatedMediaItem")
-            updatedMediaItem?.let {
+            updatedMediaItem?.let { newMediaItem ->
+                // 更新当前的mediaItem引用，以便setupVideoDetailsIfAvailable使用最新数据
+                mediaItem = newMediaItem
+
                 // 更新UI显示的媒体项目信息
-                updateMediaItemDisplay(it)
+                updateMediaItemDisplay(newMediaItem)
                 // 设置TV系列相关UI（在MediaItem数据加载后）
                 setupTVSeriesUI()
+                // 重新设置视频详情信息（使用更新后的MediaItem）
+                setupVideoDetailsIfAvailable()
 
                 // 刷新基于集数的显示（例如 总X集（库中有Y集））
                 if (viewModel.isTVSeries()) {
                     val total = viewModel.tmdbTotalEpisodes.value ?: 0
                     val local = viewModel.localAvailableEpisodes.value ?: 0
                     tvDuration.text = "总${total}集（库中有${local}集）"
-                    tvDurationSize?.text = "总${total}集（库中有${local}集） 其他 ${tvFileSize.text}"
+                    // Note: tvDurationSize is now handled by setupVideoDetailsIfAvailable() to show episode duration/size
                 }
             }
         }
@@ -529,10 +537,23 @@ class VideoDetailsFragment : Fragment() {
     }
 
     private fun setupVideoDetailsIfAvailable() {
+        // 检查是否为TV系列
+        val isTVSeries = mediaItem.mediaType == com.tvplayer.webdav.data.model.MediaType.TV_EPISODE ||
+                        mediaItem.mediaType == com.tvplayer.webdav.data.model.MediaType.TV_SERIES
+
+        // 对于TV系列，获取当前播放剧集的文件信息来显示；对于电影，使用当前MediaItem
+        val displayMediaItem = if (isTVSeries) {
+            getCurrentlyPlayingEpisodeForDisplay() ?: mediaItem
+        } else {
+            mediaItem
+        }
+
+        android.util.Log.d("VideoDetailsFragment", "setupVideoDetailsIfAvailable: isTVSeries=$isTVSeries, using filePath: ${displayMediaItem.filePath}")
+
         // 设置文件名和技术信息（从filePath中提取文件名）
         tvFilename?.let { textView ->
             val fileName = try {
-                val path = decodeFilePath(mediaItem.filePath)
+                val path = decodeFilePath(displayMediaItem.filePath)
                 if (path.isNotBlank()) {
                     val fullFileName = path.substringAfterLast('/')
                     if (fullFileName.isNotBlank()) {
@@ -547,12 +568,13 @@ class VideoDetailsFragment : Fragment() {
                 "未知文件"
             }
             textView.text = fileName
+            textView.visibility = View.VISIBLE
         }
 
         // 设置来源路径
         tvSourcePath?.let { textView ->
             val sourcePath = try {
-                val path = decodeFilePath(mediaItem.filePath)
+                val path = decodeFilePath(displayMediaItem.filePath)
                 if (path.isNotBlank()) {
                     val lastSlashIndex = path.lastIndexOf('/')
                     if (lastSlashIndex > 0) {
@@ -569,32 +591,596 @@ class VideoDetailsFragment : Fragment() {
                 "未知路径"
             }
             textView.text = sourcePath
+            textView.visibility = View.VISIBLE
         }
         
-        // 设置时长和大小（TV系列显示 总X集（库中有Y集）+ 总大小；电影保持原样）
+        // 设置时长和大小信息（对于TV系列和电影都使用相同的格式）
         tvDurationSize?.let { textView ->
-            val durationText = if (viewModel.isTVSeries()) {
-                val total = viewModel.tmdbTotalEpisodes.value ?: 0
-                val local = viewModel.localAvailableEpisodes.value ?: 0
-                "总${total}集（库中有${local}集）"
+            android.util.Log.d("VideoDetailsFragment", "=== Setting Duration/Size Info ===")
+            android.util.Log.d("VideoDetailsFragment", "displayMediaItem.duration: ${displayMediaItem.duration}")
+            android.util.Log.d("VideoDetailsFragment", "displayMediaItem.fileSize: ${displayMediaItem.fileSize}")
+            android.util.Log.d("VideoDetailsFragment", "displayMediaItem.title: ${displayMediaItem.title}")
+            android.util.Log.d("VideoDetailsFragment", "displayMediaItem.filePath: ${displayMediaItem.filePath}")
+
+            val durationText = if (displayMediaItem.duration > 0) {
+                val hours = displayMediaItem.duration / 3600
+                val minutes = (displayMediaItem.duration % 3600) / 60
+                if (hours > 0) "${hours}小时${minutes}分钟" else "${minutes}分钟"
             } else {
-                if (mediaItem.duration > 0) {
-                    val hours = mediaItem.duration / 3600
-                    val minutes = (mediaItem.duration % 3600) / 60
-                    if (hours > 0) "${hours}小时${minutes}分钟" else "${minutes}分钟"
-                } else {
-                    "未知时长"
-                }
+                android.util.Log.w("VideoDetailsFragment", "Duration is 0 or negative: ${displayMediaItem.duration}")
+                "未知时长"
             }
 
-            val sizeText = if (mediaItem.fileSize > 0) {
-                val sizeInGB = mediaItem.fileSize / (1024.0 * 1024.0 * 1024.0)
+            val sizeText = if (displayMediaItem.fileSize > 0) {
+                val sizeInGB = displayMediaItem.fileSize / (1024.0 * 1024.0 * 1024.0)
                 String.format("%.2f GB", sizeInGB)
             } else {
+                android.util.Log.w("VideoDetailsFragment", "File size is 0 or negative: ${displayMediaItem.fileSize}")
                 "未知大小"
             }
 
-            textView.text = "$durationText 其他 $sizeText"
+            // 检测视频分辨率
+            val resolutionText = detectVideoResolution(displayMediaItem)
+            android.util.Log.d("VideoDetailsFragment", "Detected resolution: $resolutionText")
+
+            val finalText = "$durationText $resolutionText $sizeText"
+            android.util.Log.d("VideoDetailsFragment", "Setting tvDurationSize text to: '$finalText'")
+            textView.text = finalText
+            textView.visibility = View.VISIBLE
+
+            // Verify the text was actually set
+            android.util.Log.d("VideoDetailsFragment", "tvDurationSize actual text after setting: '${textView.text}'")
+        }
+    }
+
+    /**
+     * 获取当前播放剧集的MediaItem用于显示文件信息
+     * 优先返回当前播放的剧集，如果没有播放状态则返回第一集
+     */
+    private fun getCurrentlyPlayingEpisodeForDisplay(): MediaItem? {
+        return try {
+            // 从ViewModel获取当前系列的所有剧集
+            val seriesId = mediaItem.seriesId
+            if (seriesId.isNullOrBlank()) {
+                android.util.Log.w("VideoDetailsFragment", "No seriesId found for TV series")
+                return null
+            }
+
+            // 从MediaCache获取所有媒体项目
+            val allItems = viewModel.getAllMediaItems()
+
+            // 找到同一系列的所有剧集
+            val seriesEpisodes = allItems.filter { item ->
+                item.seriesId == seriesId &&
+                item.mediaType == com.tvplayer.webdav.data.model.MediaType.TV_EPISODE
+            }
+
+            android.util.Log.d("VideoDetailsFragment", "Found ${seriesEpisodes.size} episodes for series: $seriesId")
+            seriesEpisodes.forEach { episode ->
+                android.util.Log.d("VideoDetailsFragment", "Episode: S${episode.seasonNumber}E${episode.episodeNumber}")
+                android.util.Log.d("VideoDetailsFragment", "  - Title: ${episode.title}")
+                android.util.Log.d("VideoDetailsFragment", "  - Duration: ${episode.duration}s")
+                android.util.Log.d("VideoDetailsFragment", "  - File Size: ${episode.fileSize} bytes")
+                android.util.Log.d("VideoDetailsFragment", "  - File Path: ${episode.filePath}")
+            }
+
+            if (seriesEpisodes.isEmpty()) {
+                android.util.Log.w("VideoDetailsFragment", "No episodes found for series: $seriesId")
+                return null
+            }
+
+            // 检查是否有播放状态
+            val playbackState = viewModel.getPlaybackState(seriesId)
+            val targetEpisode = if (playbackState != null) {
+                // 找到当前播放的剧集
+                seriesEpisodes.find { episode ->
+                    episode.seasonNumber == playbackState.currentSeasonNumber &&
+                    episode.episodeNumber == playbackState.currentEpisodeNumber
+                }.also {
+                    android.util.Log.d("VideoDetailsFragment", "Found currently playing episode: S${playbackState.currentSeasonNumber}E${playbackState.currentEpisodeNumber}, path: ${it?.filePath}")
+                }
+            } else {
+                // 没有播放状态，返回第一集
+                seriesEpisodes.sortedWith(
+                    compareBy<MediaItem> { it.seasonNumber ?: 1 }
+                        .thenBy { it.episodeNumber ?: 1 }
+                ).firstOrNull().also {
+                    android.util.Log.d("VideoDetailsFragment", "No playback state found, using first episode: S${it?.seasonNumber}E${it?.episodeNumber}, path: ${it?.filePath}")
+                }
+            }
+
+            targetEpisode
+        } catch (e: Exception) {
+            android.util.Log.e("VideoDetailsFragment", "Error getting currently playing episode", e)
+            null
+        }
+    }
+
+    /**
+     * 设置播放状态观察者，当播放状态变化时动态更新视频详情
+     */
+    private fun setupPlaybackStateObserver() {
+        // 只对TV系列设置播放状态观察者
+        val isTVSeries = mediaItem.mediaType == com.tvplayer.webdav.data.model.MediaType.TV_EPISODE ||
+                        mediaItem.mediaType == com.tvplayer.webdav.data.model.MediaType.TV_SERIES
+
+        if (isTVSeries) {
+            viewModel.getCurrentPlaybackState().observe(viewLifecycleOwner) { playbackState ->
+                android.util.Log.d("VideoDetailsFragment", "Playback state changed: ${playbackState?.getEpisodeIdentifier()}")
+
+                // 当播放状态变化时，重新设置视频详情信息
+                if (playbackState != null && playbackState.seriesId == mediaItem.seriesId) {
+                    android.util.Log.d("VideoDetailsFragment", "Updating video details for playback state change")
+                    setupVideoDetailsIfAvailable()
+                }
+            }
+        }
+    }
+
+    /**
+     * 开始播放指定剧集（用于测试和实际播放）
+     */
+    fun startPlaybackForEpisode(seasonNumber: Int, episodeNumber: Int, duration: Long = 0L) {
+        val seriesId = mediaItem.seriesId
+        if (!seriesId.isNullOrBlank()) {
+            android.util.Log.d("VideoDetailsFragment", "Starting playback for S${seasonNumber}E${episodeNumber}")
+            viewModel.startPlayback(seriesId, seasonNumber, episodeNumber, duration)
+        }
+    }
+
+    /**
+     * 更新播放进度（用于实际播放器集成）
+     */
+    fun updatePlaybackProgress(progress: Long, duration: Long = 0L) {
+        val seriesId = mediaItem.seriesId
+        if (!seriesId.isNullOrBlank()) {
+            viewModel.updatePlaybackProgress(seriesId, progress, duration)
+        }
+    }
+
+    /**
+     * 切换到下一集
+     */
+    fun switchToNextEpisode(nextSeasonNumber: Int, nextEpisodeNumber: Int) {
+        val seriesId = mediaItem.seriesId
+        if (!seriesId.isNullOrBlank()) {
+            android.util.Log.d("VideoDetailsFragment", "Switching to next episode: S${nextSeasonNumber}E${nextEpisodeNumber}")
+            viewModel.switchToNextEpisode(seriesId, nextSeasonNumber, nextEpisodeNumber)
+        }
+    }
+
+    /**
+     * 测试播放状态功能（可以通过按键或其他方式触发）
+     */
+    private fun testPlaybackStateFeature() {
+        val seriesId = mediaItem.seriesId
+        if (!seriesId.isNullOrBlank()) {
+            // 模拟播放第2季第3集
+            android.util.Log.d("VideoDetailsFragment", "Testing playback state: switching to S02E03")
+            startPlaybackForEpisode(2, 3, 3600L) // 1小时时长
+
+            // 模拟播放进度到30分钟
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                updatePlaybackProgress(1800L, 3600L) // 30分钟进度
+                android.util.Log.d("VideoDetailsFragment", "Updated playback progress to 30 minutes")
+            }, 2000)
+        }
+    }
+
+    /**
+     * 从MediaItem中检测视频分辨率 - 优化版本
+     * 基于行业标准和真实世界的视频文件命名约定
+     */
+    private fun detectVideoResolution(mediaItem: MediaItem): String {
+        return try {
+            val filePath = mediaItem.filePath.lowercase()
+            val fileName = filePath.substringAfterLast('/').substringBeforeLast('.')
+            val fullPath = filePath.lowercase()
+
+            android.util.Log.d("VideoDetailsFragment", "Detecting resolution for: $fileName")
+            android.util.Log.d("VideoDetailsFragment", "Full path: $fullPath")
+
+            // 第一阶段：直接分辨率标识符检测（最高优先级）
+            val directResolution = detectDirectResolutionMarkers(fileName, fullPath)
+            if (directResolution != null) {
+                android.util.Log.d("VideoDetailsFragment", "Direct resolution detected: $directResolution")
+                return directResolution
+            }
+
+            // 第二阶段：质量标签推断
+            val qualityResolution = detectResolutionFromQualityTags(fileName, fullPath)
+            if (qualityResolution != null) {
+                android.util.Log.d("VideoDetailsFragment", "Quality-based resolution detected: $qualityResolution")
+                return qualityResolution
+            }
+
+            // 第三阶段：正则表达式模式匹配
+            val regexResolution = detectResolutionFromRegexPatterns(fileName, fullPath)
+            if (regexResolution != null) {
+                android.util.Log.d("VideoDetailsFragment", "Regex-based resolution detected: $regexResolution")
+                return regexResolution
+            }
+
+            // 第四阶段：文件大小和时长推断
+            val inferredResolution = inferResolutionFromFileMetadata(mediaItem)
+            if (inferredResolution != null) {
+                android.util.Log.d("VideoDetailsFragment", "Inferred resolution from metadata: $inferredResolution")
+                return inferredResolution
+            }
+
+            android.util.Log.d("VideoDetailsFragment", "No resolution pattern found, defaulting to 其他")
+            "其他"
+
+        } catch (e: Exception) {
+            android.util.Log.e("VideoDetailsFragment", "Error detecting video resolution", e)
+            "其他"
+        }
+    }
+
+    /**
+     * 第一阶段：检测直接分辨率标识符
+     */
+    private fun detectDirectResolutionMarkers(fileName: String, fullPath: String): String? {
+        // 4K/UHD 检测 - 最全面的4K标识符
+        val fourKPatterns = listOf(
+            "4k", "2160p", "uhd", "ultra.hd", "ultrahd", "uhdtv", "4k.uhd",
+            "3840x2160", "4096x2160", "2160", "uhd.4k", "4k.2160p"
+        )
+
+        // 2K/QHD 检测
+        val twoKPatterns = listOf(
+            "2k", "1440p", "qhd", "quad.hd", "quadhd", "wqhd",
+            "2560x1440", "2048x1080", "1440", "2k.qhd"
+        )
+
+        // 1080P/FHD 检测 - 包含各种变体
+        val fullHDPatterns = listOf(
+            "1080p", "1080i", "fhd", "full.hd", "fullhd", "1920x1080",
+            "1080", "fhd.1080p", "bluray.1080p", "web.1080p"
+        )
+
+        // 720P/HD 检测
+        val hdPatterns = listOf(
+            "720p", "720i", "hd", "1280x720", "720", "hd.720p",
+            "web.720p", "hdtv.720p"
+        )
+
+        // 检查4K模式
+        for (pattern in fourKPatterns) {
+            if (fileName.contains(pattern) || fullPath.contains(pattern)) {
+                return "4K"
+            }
+        }
+
+        // 检查2K模式
+        for (pattern in twoKPatterns) {
+            if (fileName.contains(pattern) || fullPath.contains(pattern)) {
+                return "2K"
+            }
+        }
+
+        // 检查1080P模式
+        for (pattern in fullHDPatterns) {
+            if (fileName.contains(pattern) || fullPath.contains(pattern)) {
+                return "1080P"
+            }
+        }
+
+        // 检查720P模式
+        for (pattern in hdPatterns) {
+            if (fileName.contains(pattern) || fullPath.contains(pattern)) {
+                return "720P"
+            }
+        }
+
+        return null
+    }
+
+    /**
+     * 第二阶段：从质量标签推断分辨率
+     */
+    private fun detectResolutionFromQualityTags(fileName: String, fullPath: String): String? {
+        // 4K质量标签 - 通常与4K内容相关
+        val fourKQualityTags = listOf(
+            "remux", "bdremux", "uhd.remux", "4k.remux", "atmos", "dv", "dolby.vision",
+            "hdr10", "hdr", "imax", "criterion", "masters"
+        )
+
+        // 1080P质量标签 - 高质量但通常是1080P
+        val fullHDQualityTags = listOf(
+            "bluray", "blu.ray", "bdrip", "brip", "brrip", "web.dl", "webdl", "webrip",
+            "netflix", "amazon", "hulu", "disney", "hbo", "apple.tv", "paramount"
+        )
+
+        // 720P质量标签 - 中等质量
+        val hdQualityTags = listOf(
+            "hdtv", "hdcam", "hdts", "hdtc", "web.720p", "iptv"
+        )
+
+        // 低质量标签 - 通常是720P或更低
+        val standardQualityTags = listOf(
+            "dvdrip", "dvd.rip", "dvdscr", "cam", "ts", "tc", "workprint", "r5", "r6"
+        )
+
+        // 检查4K质量标签
+        for (tag in fourKQualityTags) {
+            if (fileName.contains(tag) || fullPath.contains(tag)) {
+                // 如果有4K质量标签但没有明确的分辨率，推断为4K
+                return "4K"
+            }
+        }
+
+        // 检查1080P质量标签
+        for (tag in fullHDQualityTags) {
+            if (fileName.contains(tag) || fullPath.contains(tag)) {
+                // 如果有高质量标签但没有明确分辨率，推断为1080P
+                return "1080P"
+            }
+        }
+
+        // 检查720P质量标签
+        for (tag in hdQualityTags) {
+            if (fileName.contains(tag) || fullPath.contains(tag)) {
+                return "720P"
+            }
+        }
+
+        // 检查标准质量标签
+        for (tag in standardQualityTags) {
+            if (fileName.contains(tag) || fullPath.contains(tag)) {
+                return "720P" // 大多数DVD rips是720P或更低
+            }
+        }
+
+        return null
+    }
+
+    /**
+     * 第三阶段：正则表达式模式匹配
+     */
+    private fun detectResolutionFromRegexPatterns(fileName: String, fullPath: String): String? {
+        // 增强的正则表达式模式
+        val patterns = listOf(
+            // 标准分辨率格式: 1920x1080, 3840x2160等
+            Regex("(\\d{3,4})\\s*[x×]\\s*(\\d{3,4})"),
+            // P格式: 1080p, 720p, 2160p等
+            Regex("(\\d{3,4})p", RegexOption.IGNORE_CASE),
+            // I格式: 1080i, 720i等
+            Regex("(\\d{3,4})i", RegexOption.IGNORE_CASE),
+            // 带点分隔: 1920.1080, 3840.2160
+            Regex("(\\d{3,4})\\.\\s*(\\d{3,4})"),
+            // 带下划线: 1920_1080
+            Regex("(\\d{3,4})_\\s*(\\d{3,4})"),
+            // 方括号格式: [1080p], [720p]
+            Regex("\\[(\\d{3,4})[pi]\\]", RegexOption.IGNORE_CASE),
+            // 圆括号格式: (1080p), (720p)
+            Regex("\\((\\d{3,4})[pi]\\)", RegexOption.IGNORE_CASE)
+        )
+
+        for (pattern in patterns) {
+            val match = pattern.find(fileName) ?: pattern.find(fullPath)
+            if (match != null) {
+                val width: Int
+                val height: Int
+
+                when {
+                    // 宽x高格式
+                    match.groupValues.size >= 3 && match.groupValues[1].isNotEmpty() && match.groupValues[2].isNotEmpty() -> {
+                        width = match.groupValues[1].toIntOrNull() ?: 0
+                        height = match.groupValues[2].toIntOrNull() ?: 0
+                    }
+                    // 单一数字格式 (p/i)
+                    match.groupValues.size >= 2 && match.groupValues[1].isNotEmpty() -> {
+                        height = match.groupValues[1].toIntOrNull() ?: 0
+                        width = when (height) {
+                            2160 -> 3840
+                            1440 -> 2560
+                            1080 -> 1920
+                            720 -> 1280
+                            576 -> 720  // PAL
+                            480 -> 640  // NTSC
+                            else -> 0
+                        }
+                    }
+                    else -> {
+                        width = 0
+                        height = 0
+                    }
+                }
+
+                android.util.Log.d("VideoDetailsFragment", "Regex extracted resolution: ${width}x${height}")
+
+                // 分类分辨率
+                return categorizeResolution(width, height)
+            }
+        }
+
+        return null
+    }
+
+    /**
+     * 第四阶段：从文件元数据推断分辨率
+     */
+    private fun inferResolutionFromFileMetadata(mediaItem: MediaItem): String? {
+        val fileSize = mediaItem.fileSize
+        val duration = mediaItem.duration
+
+        if (fileSize <= 0 || duration <= 0) {
+            return null
+        }
+
+        // 计算比特率 (bytes per second)
+        val bitrate = fileSize.toDouble() / duration.toDouble()
+
+        // 基于文件大小和时长的启发式推断
+        // 这些值基于典型的视频编码比特率
+        return when {
+            // 4K内容通常有很高的比特率
+            bitrate > 2_000_000 -> { // > 2MB/s
+                android.util.Log.d("VideoDetailsFragment", "High bitrate detected (${String.format("%.2f", bitrate / 1_000_000)} MB/s), inferring 4K")
+                "4K"
+            }
+            // 1080P内容的典型比特率
+            bitrate > 800_000 -> { // > 800KB/s
+                android.util.Log.d("VideoDetailsFragment", "Medium-high bitrate detected (${String.format("%.2f", bitrate / 1_000_000)} MB/s), inferring 1080P")
+                "1080P"
+            }
+            // 720P内容的典型比特率
+            bitrate > 300_000 -> { // > 300KB/s
+                android.util.Log.d("VideoDetailsFragment", "Medium bitrate detected (${String.format("%.2f", bitrate / 1_000_000)} MB/s), inferring 720P")
+                "720P"
+            }
+            else -> {
+                android.util.Log.d("VideoDetailsFragment", "Low bitrate detected (${String.format("%.2f", bitrate / 1_000_000)} MB/s), cannot infer resolution")
+                null
+            }
+        }
+    }
+
+    /**
+     * 辅助方法：根据宽度和高度分类分辨率
+     */
+    private fun categorizeResolution(width: Int, height: Int): String? {
+        return when {
+            height >= 2160 || width >= 3840 -> "4K"
+            height >= 1440 || width >= 2560 -> "2K"
+            height >= 1080 || width >= 1920 -> "1080P"
+            height >= 720 || width >= 1280 -> "720P"
+            height >= 576 || width >= 720 -> "720P"  // PAL标准
+            height >= 480 || width >= 640 -> "720P"  // NTSC标准，归类为720P
+            else -> null
+        }
+    }
+
+    /**
+     * 测试视频详情显示功能
+     */
+    private fun testVideoDetailsDisplay() {
+        val seriesId = mediaItem.seriesId
+        if (!seriesId.isNullOrBlank()) {
+            android.util.Log.d("VideoDetailsFragment", "=== Testing Video Details Display ===")
+            android.util.Log.d("VideoDetailsFragment", "Series ID: $seriesId")
+            android.util.Log.d("VideoDetailsFragment", "Original MediaItem: ${mediaItem.title}")
+            android.util.Log.d("VideoDetailsFragment", "Original duration: ${mediaItem.duration}s, fileSize: ${mediaItem.fileSize} bytes")
+
+            val currentEpisode = getCurrentlyPlayingEpisodeForDisplay()
+            if (currentEpisode != null) {
+                android.util.Log.d("VideoDetailsFragment", "Current Episode: S${currentEpisode.seasonNumber}E${currentEpisode.episodeNumber}")
+                android.util.Log.d("VideoDetailsFragment", "Episode duration: ${currentEpisode.duration}s, fileSize: ${currentEpisode.fileSize} bytes")
+                android.util.Log.d("VideoDetailsFragment", "Episode file path: ${currentEpisode.filePath}")
+
+                // Test resolution detection
+                val detectedResolution = detectVideoResolution(currentEpisode)
+                android.util.Log.d("VideoDetailsFragment", "Detected resolution: $detectedResolution")
+            } else {
+                android.util.Log.w("VideoDetailsFragment", "No current episode found!")
+            }
+
+            // Check if tvDurationSize exists
+            android.util.Log.d("VideoDetailsFragment", "tvDurationSize exists: ${tvDurationSize != null}")
+            android.util.Log.d("VideoDetailsFragment", "Current tvDurationSize text: '${tvDurationSize?.text}'")
+
+            // 刷新显示
+            setupVideoDetailsIfAvailable()
+
+            // Check again after refresh
+            android.util.Log.d("VideoDetailsFragment", "After refresh tvDurationSize text: '${tvDurationSize?.text}'")
+        }
+    }
+
+    /**
+     * 测试分辨率检测功能 - 增强版本
+     */
+    private fun testResolutionDetection() {
+        android.util.Log.d("VideoDetailsFragment", "=== Enhanced Resolution Detection Testing ===")
+
+        // 测试各种真实世界的文件名格式
+        val testCases = listOf(
+            // 4K测试用例
+            "Avengers.Endgame.2019.4K.UHD.2160p.BluRay.x265.HDR.mkv" to "4K",
+            "The.Matrix.1999.UHD.BluRay.2160p.DTS-HD.MA.5.1.HEVC.REMUX.mkv" to "4K",
+            "Dune.2021.3840x2160.HDR10.Dolby.Vision.mkv" to "4K",
+            "Movie.4K.IMAX.Enhanced.mkv" to "4K",
+
+            // 2K测试用例
+            "Game.of.Thrones.S08E06.2K.QHD.1440p.WEB-DL.mkv" to "2K",
+            "Film.2560x1440.WQHD.mp4" to "2K",
+
+            // 1080P测试用例
+            "Breaking.Bad.S01E01.1080p.BluRay.x264.mkv" to "1080P",
+            "Movie.2023.FHD.1080p.WEB-DL.H264.mp4" to "1080P",
+            "Series.1920x1080.Netflix.WEBRip.mkv" to "1080P",
+            "Film.BRRip.1080p.x265.mp4" to "1080P",
+            "Show.WEB.1080p.Amazon.Prime.mkv" to "1080P",
+            "Content.BluRay.Remux.1080p.mkv" to "1080P",
+
+            // 720P测试用例
+            "Series.S01E01.720p.HDTV.x264.mkv" to "720P",
+            "Movie.720p.WEB-DL.DD5.1.H264.mp4" to "720P",
+            "Show.1280x720.HDTV.mkv" to "720P",
+            "Film.DVDRip.720p.XviD.avi" to "720P",
+
+            // 边缘情况
+            "Movie.[1080p].BluRay.mkv" to "1080P",
+            "Series.(720p).WEB-DL.mp4" to "720P",
+            "Film_1920_1080_H264.mkv" to "1080P",
+            "Show.1080i.HDTV.mkv" to "1080P",
+            "Content.576p.DVDRip.avi" to "720P",
+
+            // 质量标签推断测试
+            "Movie.BluRay.Remux.No.Resolution.mkv" to "1080P",
+            "Series.Netflix.WEBRip.Unknown.mkv" to "1080P",
+            "Film.HDTV.Capture.mkv" to "720P",
+            "Show.DVDRip.XviD.avi" to "720P",
+
+            // 应该检测为"其他"的情况
+            "Movie.CAM.LowQuality.avi" to "其他",
+            "Series.Unknown.Format.mkv" to "其他"
+        )
+
+        var correctDetections = 0
+        val totalTests = testCases.size
+
+        testCases.forEach { (fileName, expectedResolution) ->
+            // 创建测试用的MediaItem，包含不同的文件大小来测试推断逻辑
+            val fileSize = when (expectedResolution) {
+                "4K" -> 8_000_000_000L // 8GB
+                "2K" -> 4_000_000_000L // 4GB
+                "1080P" -> 2_000_000_000L // 2GB
+                "720P" -> 1_000_000_000L // 1GB
+                else -> 500_000_000L // 500MB
+            }
+
+            val testMediaItem = mediaItem.copy(
+                filePath = "/test/path/$fileName",
+                fileSize = fileSize,
+                duration = 7200L // 2小时
+            )
+
+            val detectedResolution = detectVideoResolution(testMediaItem)
+            val isCorrect = detectedResolution == expectedResolution
+
+            if (isCorrect) correctDetections++
+
+            val status = if (isCorrect) "✓" else "✗"
+            android.util.Log.d("VideoDetailsFragment", "$status File: $fileName")
+            android.util.Log.d("VideoDetailsFragment", "  Expected: $expectedResolution, Detected: $detectedResolution")
+        }
+
+        val accuracy = (correctDetections.toDouble() / totalTests.toDouble()) * 100
+        android.util.Log.d("VideoDetailsFragment", "=== Test Results ===")
+        android.util.Log.d("VideoDetailsFragment", "Correct: $correctDetections/$totalTests")
+        android.util.Log.d("VideoDetailsFragment", "Accuracy: ${String.format("%.1f", accuracy)}%")
+
+        // 测试当前剧集
+        val currentEpisode = getCurrentlyPlayingEpisodeForDisplay()
+        if (currentEpisode != null) {
+            android.util.Log.d("VideoDetailsFragment", "=== Current Episode Test ===")
+            val currentResolution = detectVideoResolution(currentEpisode)
+            android.util.Log.d("VideoDetailsFragment", "Current episode resolution: $currentResolution")
+            android.util.Log.d("VideoDetailsFragment", "Current episode file: ${currentEpisode.filePath}")
+            android.util.Log.d("VideoDetailsFragment", "File size: ${currentEpisode.fileSize} bytes")
+            android.util.Log.d("VideoDetailsFragment", "Duration: ${currentEpisode.duration} seconds")
         }
     }
 
@@ -628,6 +1214,16 @@ class VideoDetailsFragment : Fragment() {
                         } else {
                             false
                         }
+                    }
+                    KeyEvent.KEYCODE_MENU -> {
+                        // 按菜单键测试播放状态功能（仅用于测试）
+                        testPlaybackStateFeature()
+                        true
+                    }
+                    KeyEvent.KEYCODE_GUIDE -> {
+                        // 按指南键测试分辨率检测功能（仅用于测试）
+                        testResolutionDetection()
+                        true
                     }
                     else -> false
                 }
