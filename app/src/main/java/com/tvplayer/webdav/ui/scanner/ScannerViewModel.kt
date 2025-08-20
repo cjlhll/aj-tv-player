@@ -12,6 +12,8 @@ import com.tvplayer.webdav.data.webdav.SimpleWebDAVClient
 import com.tvplayer.webdav.data.storage.WebDAVServerStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 
 /**
@@ -90,7 +92,7 @@ class ScannerViewModel @Inject constructor(
                     return@launch
                 }
 
-                _scanStatus.postValue("扫描电影目录: $moviesDir")
+                _scanStatus.postValue("扫描电影目录: ${decodeForDisplay(moviesDir)}")
                 val items = mediaScanner.scanDirectory(moviesDir, recursive = true, modeHint = MediaScanner.ModeHint.MOVIE, callback = object : MediaScanner.ScanProgressCallback {
                     override fun onProgress(current: Int, total: Int, currentFile: String) {
                         _scanProgress.postValue("电影: $current/$total")
@@ -151,7 +153,7 @@ class ScannerViewModel @Inject constructor(
                     return@launch
                 }
 
-                _scanStatus.postValue("扫描电视剧目录: $tvDir")
+                _scanStatus.postValue("扫描电视剧目录: ${decodeForDisplay(tvDir)}")
                 val items = mediaScanner.scanDirectory(tvDir, recursive = true, modeHint = MediaScanner.ModeHint.TV, callback = object : MediaScanner.ScanProgressCallback {
                     override fun onProgress(current: Int, total: Int, currentFile: String) {
                         _scanProgress.postValue("电视剧: $current/$total")
@@ -212,7 +214,7 @@ class ScannerViewModel @Inject constructor(
                 val allItems = mutableListOf<MediaItem>()
 
                 if (!moviesDir.isNullOrEmpty()) {
-                    _scanStatus.postValue("扫描电影目录: $moviesDir")
+                    _scanStatus.postValue("扫描电影目录: ${decodeForDisplay(moviesDir)}")
                     val items = mediaScanner.scanDirectory(moviesDir, recursive = true, modeHint = MediaScanner.ModeHint.MOVIE, callback = object : MediaScanner.ScanProgressCallback {
                         override fun onProgress(current: Int, total: Int, currentFile: String) {
                             _scanProgress.postValue("电影: $current/$total")
@@ -224,7 +226,7 @@ class ScannerViewModel @Inject constructor(
                 }
 
                 if (!tvDir.isNullOrEmpty()) {
-                    _scanStatus.postValue("扫描电视剧目录: $tvDir")
+                    _scanStatus.postValue("扫描电视剧目录: ${decodeForDisplay(tvDir)}")
                     val items = mediaScanner.scanDirectory(tvDir, recursive = true, modeHint = MediaScanner.ModeHint.TV, callback = object : MediaScanner.ScanProgressCallback {
                         override fun onProgress(current: Int, total: Int, currentFile: String) {
                             _scanProgress.postValue("电视剧: $current/$total")
@@ -282,7 +284,7 @@ class ScannerViewModel @Inject constructor(
                 val callback = object : MediaScanner.ScanProgressCallback {
                     override fun onProgress(current: Int, total: Int, currentFile: String) {
                         _scanProgress.postValue("扫描进度: $current/$total")
-                        _scanStatus.postValue("正在处理: ${currentFile.substringAfterLast('/')}")
+                        _scanStatus.postValue("正在处理: ${decodeForDisplay(currentFile.substringAfterLast('/'))}")
                     }
 
                     override fun onComplete(scannedItems: List<MediaItem>) {
@@ -389,4 +391,34 @@ class ScannerViewModel @Inject constructor(
         _currentPath.value = parent
         loadCurrentDirectory()
     }
+
+    /**
+     * 解码用于显示的路径/文件名，优先UTF-8，处理多次编码，必要时回退GBK/ISO-8859-1
+     */
+    private fun decodeForDisplay(input: String?): String {
+        if (input.isNullOrEmpty()) return input ?: ""
+        val s = input
+        return try {
+            // 快速路径：无%则直接返回
+            if (!s.contains("%")) return s
+            var decoded = URLDecoder.decode(s, StandardCharsets.UTF_8.toString())
+            var prev = decoded
+            // 处理双重/多重编码
+            repeat(3) {
+                if (!decoded.contains("%")) return@repeat
+                val next = try { URLDecoder.decode(decoded, StandardCharsets.UTF_8.toString()) } catch (_: Exception) { decoded }
+                if (next == prev) return@repeat
+                prev = next
+                decoded = next
+            }
+            decoded
+        } catch (_: Exception) {
+            try {
+                URLDecoder.decode(s, "GBK")
+            } catch (_: Exception) {
+                try { URLDecoder.decode(s, "ISO-8859-1") } catch (_: Exception) { s }
+            }
+        }
+    }
+
 }
