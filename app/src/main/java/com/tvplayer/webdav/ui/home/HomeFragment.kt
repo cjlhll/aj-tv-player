@@ -193,9 +193,40 @@ class HomeFragment : Fragment() {
     }
 
     private fun onTVSeriesClick(series: TVSeriesSummary) {
-        // TODO: 导航到电视剧详情页面或剧集列表
-        // 暂时显示Toast
-        android.widget.Toast.makeText(context, "点击了电视剧: ${series.seriesTitle}", android.widget.Toast.LENGTH_SHORT).show()
+        // 将TVSeriesSummary转换为MediaItem以便导航到详情页面
+        val mediaItem = com.tvplayer.webdav.data.model.MediaItem(
+            id = series.seriesId,
+            title = series.seriesTitle,
+            originalTitle = null,
+            overview = series.overview,
+            posterPath = series.posterPath,
+            backdropPath = series.backdropPath,
+            releaseDate = series.releaseDate,
+            rating = series.rating,
+            duration = 0L, // TV系列没有固定时长
+            mediaType = com.tvplayer.webdav.data.model.MediaType.TV_EPISODE, // 使用TV_EPISODE类型触发TV系列UI
+            filePath = "", // TV系列没有单一文件路径
+            fileSize = 0L,
+            lastModified = series.lastWatchedTime,
+            seasonNumber = if (series.totalSeasons > 0) 1 else null, // 默认选择第1季
+            episodeNumber = null,
+            seriesId = series.seriesId,
+            seriesTitle = series.seriesTitle,
+            watchedProgress = 0f,
+            isWatched = false,
+            lastWatchedTime = series.lastWatchedTime,
+            isFavorite = false,
+            tags = emptyList(),
+            genre = series.genre
+        )
+
+        android.util.Log.d("HomeFragment", "Created MediaItem for TV series: " +
+            "id=${mediaItem.id}, title=${mediaItem.title}, mediaType=${mediaItem.mediaType}")
+
+        // 导航到视频详情页面
+        val intent = android.content.Intent(requireContext(), com.tvplayer.webdav.ui.details.VideoDetailsActivity::class.java)
+        intent.putExtra("media_item", mediaItem)
+        startActivity(intent)
     }
 
     private fun onTVSeriesFocused(series: TVSeriesSummary) {

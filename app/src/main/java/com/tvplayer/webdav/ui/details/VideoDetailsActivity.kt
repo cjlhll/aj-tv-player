@@ -18,7 +18,9 @@ class VideoDetailsActivity : FragmentActivity() {
         setContentView(R.layout.activity_video_details)
 
         val mediaItem = intent.getParcelableExtra<MediaItem>("media_item")
+        android.util.Log.d("VideoDetailsActivity", "Received MediaItem: $mediaItem")
         if (mediaItem == null) {
+            android.util.Log.e("VideoDetailsActivity", "MediaItem is null, finishing activity")
             finish()
             return
         }

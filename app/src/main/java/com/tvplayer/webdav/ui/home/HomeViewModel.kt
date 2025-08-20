@@ -180,10 +180,10 @@ class HomeViewModel @Inject constructor(
             )
         )
 
-        // 示例电视剧系列数据
+        // 示例电视剧系列数据（使用真实的TMDB ID）
         val sampleTVShows = listOf(
             TVSeriesSummary(
-                seriesId = "got",
+                seriesId = "tv_1399", // 权力的游戏的TMDB ID
                 seriesTitle = "权力的游戏",
                 overview = "在维斯特洛大陆上，七个王国为了争夺铁王座而展开的史诗级斗争...",
                 rating = 9.0f,
@@ -195,7 +195,7 @@ class HomeViewModel @Inject constructor(
                 episodes = emptyList()
             ),
             TVSeriesSummary(
-                seriesId = "friends",
+                seriesId = "tv_1668", // 老友记的TMDB ID
                 seriesTitle = "老友记",
                 overview = "六个朋友在纽约的生活、爱情和友谊的温馨喜剧...",
                 rating = 8.9f,
@@ -207,7 +207,7 @@ class HomeViewModel @Inject constructor(
                 episodes = emptyList()
             ),
             TVSeriesSummary(
-                seriesId = "breaking_bad",
+                seriesId = "tv_1396", // 绝命毒师的TMDB ID
                 seriesTitle = "绝命毒师",
                 overview = "一个高中化学老师因为癌症诊断而开始制毒的犯罪剧...",
                 rating = 9.5f,

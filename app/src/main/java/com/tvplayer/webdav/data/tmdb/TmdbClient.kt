@@ -352,6 +352,13 @@ class TmdbClient @Inject constructor(
     }
 
     /**
+     * 获取剧集静态图片URL
+     */
+    fun getEpisodeStillUrl(stillPath: String?): String? {
+        return stillPath?.let { "${TmdbApiService.IMAGE_BASE_URL}${TmdbApiService.BACKDROP_SIZE_W780}$it" }
+    }
+
+    /**
      * 获取电影详细信息（包括演员）
      * @param movieId 电影ID
      * @return 电影详细信息
@@ -393,21 +400,57 @@ class TmdbClient @Inject constructor(
                 // 获取电视剧详情
                 val detailsResponse = apiService.getTVShowDetails(tvId, API_KEY)
                 val tvDetails = detailsResponse.body()
-                
+
                 if (tvDetails != null) {
                     // 获取演员信息
                     val castResponse = apiService.getTVCredits(tvId, API_KEY)
                     val cast = castResponse.body()?.cast ?: emptyList()
-                    
+
                     // 确保中文标题/概述
                     val finalizedTV = ensureChineseTV(tvId, tvDetails)
-                    
+
                     Pair(finalizedTV, cast)
                 } else {
                     null
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error getting TV show details with cast: $tvId", e)
+                null
+            }
+        }
+    }
+
+    /**
+     * 获取电视剧季详情（包括剧集图片）
+     * @param tvId 电视剧ID
+     * @param seasonNumber 季数
+     * @return 季详情信息
+     */
+    suspend fun getSeasonDetailsWithImages(tvId: Int, seasonNumber: Int): TmdbSeasonDetails? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = apiService.getSeasonDetails(tvId, seasonNumber, API_KEY)
+                response.body()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error getting season details: $tvId S$seasonNumber", e)
+                null
+            }
+        }
+    }
+
+    /**
+     * 获取电视剧所有季的信息
+     * @param tvId 电视剧ID
+     * @return 所有季的列表
+     */
+    suspend fun getAllSeasonsForTVShow(tvId: Int): List<TmdbSeason>? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = apiService.getTVShowDetails(tvId, API_KEY)
+                val tvDetails = response.body()
+                tvDetails?.seasons?.filter { it.seasonNumber > 0 } // 过滤掉特别篇（season 0）
+            } catch (e: Exception) {
+                Log.e(TAG, "Error getting seasons for TV show: $tvId", e)
                 null
             }
         }

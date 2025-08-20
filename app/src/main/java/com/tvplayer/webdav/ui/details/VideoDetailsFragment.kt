@@ -56,6 +56,12 @@ class VideoDetailsFragment : Fragment() {
     private var tvDurationSize: TextView? = null
     private var btnBackToTop: View? = null
 
+    // TV系列组件
+    private var tvSeriesSection: LinearLayout? = null
+    private var spinnerSeason: android.widget.Spinner? = null
+    private var rvEpisodes: RecyclerView? = null
+    private var episodeAdapter: EpisodeAdapter? = null
+
     companion object {
         private const val ARG_MEDIA_ITEM = "media_item"
 
@@ -71,9 +77,11 @@ class VideoDetailsFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mediaItem = arguments?.getParcelable(ARG_MEDIA_ITEM) ?: run {
+            android.util.Log.e("VideoDetailsFragment", "MediaItem is null in arguments")
             requireActivity().finish()
             return
         }
+        android.util.Log.d("VideoDetailsFragment", "Fragment created with MediaItem: $mediaItem")
     }
 
     override fun onCreateView(
@@ -94,6 +102,9 @@ class VideoDetailsFragment : Fragment() {
         
         // 加载详情数据
         viewModel.loadVideoDetails(mediaItem)
+
+        // 立即检查并设置TV系列UI（因为MediaItem已经可用）
+        setupTVSeriesUI()
     }
 
     private fun initViews(view: View) {
@@ -121,6 +132,19 @@ class VideoDetailsFragment : Fragment() {
             btnBackToTop = view.findViewById(R.id.btn_back_to_top)
         } catch (e: Exception) {
             // 如果找不到这些组件，说明布局没有包含演员表部分
+        }
+
+        // 初始化TV系列组件
+        try {
+            tvSeriesSection = view.findViewById(R.id.tv_series_section)
+            spinnerSeason = view.findViewById(R.id.spinner_season)
+            rvEpisodes = view.findViewById(R.id.rv_episodes)
+            android.util.Log.d("VideoDetailsFragment", "TV series components initialized: " +
+                "tvSeriesSection=${tvSeriesSection != null}, " +
+                "spinnerSeason=${spinnerSeason != null}, " +
+                "rvEpisodes=${rvEpisodes != null}")
+        } catch (e: Exception) {
+            android.util.Log.e("VideoDetailsFragment", "Failed to initialize TV series components", e)
         }
     }
 
@@ -329,13 +353,31 @@ class VideoDetailsFragment : Fragment() {
         viewModel.actors.observe(viewLifecycleOwner) { actors ->
             setupActors(actors)
         }
-        
+
         // 观察媒体项目数据变化
         viewModel.mediaItem.observe(viewLifecycleOwner) { updatedMediaItem ->
+            android.util.Log.d("VideoDetailsFragment", "MediaItem observer triggered: $updatedMediaItem")
             updatedMediaItem?.let {
                 // 更新UI显示的媒体项目信息
                 updateMediaItemDisplay(it)
+                // 设置TV系列相关UI（在MediaItem数据加载后）
+                setupTVSeriesUI()
             }
+        }
+
+        // 观察TV系列季数据变化
+        viewModel.seasons.observe(viewLifecycleOwner) { seasons ->
+            setupSeasonSpinner(seasons)
+        }
+
+        // 观察当前季变化
+        viewModel.currentSeason.observe(viewLifecycleOwner) { seasonNumber ->
+            updateSelectedSeason(seasonNumber)
+        }
+
+        // 观察剧集数据变化
+        viewModel.episodes.observe(viewLifecycleOwner) { episodes ->
+            setupEpisodes(episodes)
         }
     }
 
@@ -688,6 +730,94 @@ class VideoDetailsFragment : Fragment() {
                 }
             }
         }
+    }
+
+    /**
+     * 设置TV系列相关UI
+     */
+    private fun setupTVSeriesUI() {
+        val isTVSeries = viewModel.isTVSeries()
+        val directCheck = mediaItem.mediaType == com.tvplayer.webdav.data.model.MediaType.TV_EPISODE ||
+                         mediaItem.mediaType == com.tvplayer.webdav.data.model.MediaType.TV_SERIES
+        android.util.Log.d("VideoDetailsFragment", "setupTVSeriesUI: isTVSeries = $isTVSeries, directCheck = $directCheck, mediaType = ${mediaItem.mediaType}")
+
+        if (isTVSeries || directCheck) {
+            android.util.Log.d("VideoDetailsFragment", "Setting TV series section visible")
+            tvSeriesSection?.visibility = View.VISIBLE
+            setupEpisodeList()
+        } else {
+            android.util.Log.d("VideoDetailsFragment", "Setting TV series section gone")
+            tvSeriesSection?.visibility = View.GONE
+        }
+    }
+
+    /**
+     * 设置剧集列表
+     */
+    private fun setupEpisodeList() {
+        android.util.Log.d("VideoDetailsFragment", "setupEpisodeList called, rvEpisodes = ${rvEpisodes != null}")
+        rvEpisodes?.let { recyclerView ->
+            android.util.Log.d("VideoDetailsFragment", "Setting up episode adapter and layout manager")
+            episodeAdapter = EpisodeAdapter(
+                onEpisodeClick = { episode ->
+                    // 播放对应的媒体文件
+                    val mediaItem = episode.mediaItem
+                    android.widget.Toast.makeText(context, "播放 ${episode.getDisplayTitle()}: ${episode.name}\n文件: ${mediaItem.filePath}", android.widget.Toast.LENGTH_LONG).show()
+                    // TODO: 启动播放器播放 mediaItem
+                },
+                onItemFocused = { episode ->
+                    // 可以在这里处理焦点变化，比如更新详情信息
+                    android.util.Log.d("VideoDetailsFragment", "Focused on episode ${episode.episodeNumber}: ${episode.name}")
+                }
+            )
+
+            recyclerView.adapter = episodeAdapter
+            recyclerView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(
+                context, androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false
+            )
+        }
+    }
+
+    /**
+     * 设置季选择下拉框
+     */
+    private fun setupSeasonSpinner(seasons: List<com.tvplayer.webdav.data.tmdb.TmdbSeason>) {
+        spinnerSeason?.let { spinner ->
+            val seasonNames = seasons.map { "第${it.seasonNumber}季" }
+            val adapter = android.widget.ArrayAdapter(
+                requireContext(),
+                android.R.layout.simple_spinner_item,
+                seasonNames
+            )
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spinner.adapter = adapter
+
+            spinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                    if (position < seasons.size) {
+                        val selectedSeason = seasons[position]
+                        viewModel.selectSeason(selectedSeason.seasonNumber)
+                    }
+                }
+
+                override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+            }
+        }
+    }
+
+    /**
+     * 更新选中的季
+     */
+    private fun updateSelectedSeason(seasonNumber: Int) {
+        // 这里可以更新UI显示当前选中的季
+        // 由于spinner的选择会触发viewModel.selectSeason，这里主要用于初始化时设置
+    }
+
+    /**
+     * 设置剧集列表数据
+     */
+    private fun setupEpisodes(episodes: List<com.tvplayer.webdav.data.model.Episode>) {
+        episodeAdapter?.submitList(episodes)
     }
 
 }
