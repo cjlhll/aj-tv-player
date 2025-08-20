@@ -349,13 +349,65 @@ class VideoDetailsFragment : Fragment() {
             android.widget.Toast.makeText(context, "已返回顶部", android.widget.Toast.LENGTH_SHORT).show()
         }
 
-
-
         // 设置按键监听器来处理遥控器滚动
         setupKeyListener(view)
 
+        // 设置滚动监听器来处理遮罩层显示
+        scrollView.setOnScrollChangeListener { _, _, scrollY, _, _ ->
+            handleScrollPosition(scrollY)
+        }
+
         // 默认焦点设置到播放按钮
         btnPlay.requestFocus()
+    }
+
+    /**
+     * 处理滚动位置变化，控制遮罩层显示
+     */
+    private fun handleScrollPosition(scrollY: Int) {
+        // 当滚动到第二页位置时显示遮罩层
+        if (scrollY >= firstScreenHeightPx) {
+            // 添加半透明遮罩层
+            addOverlayMask()
+        } else {
+            // 移除遮罩层逻辑
+            removeOverlayMask()
+        }
+    }
+
+    /**
+     * 添加半透明遮罩层
+     */
+    private fun addOverlayMask() {
+        val overlayMask = view?.findViewById<View>(R.id.overlay_mask)
+        overlayMask?.let { mask ->
+            if (mask.visibility != View.VISIBLE) {
+                mask.alpha = 0f
+                mask.visibility = View.VISIBLE
+                mask.animate()
+                    .alpha(1f)
+                    .setDuration(100)
+                    .start()
+            }
+        }
+    }
+
+    /**
+     * 移除半透明遮罩层
+     */
+    private fun removeOverlayMask() {
+        val overlayMask = view?.findViewById<View>(R.id.overlay_mask)
+        overlayMask?.let { mask ->
+            if (mask.visibility == View.VISIBLE) {
+                mask.animate()
+                    .alpha(0f)
+                    .setDuration(100)
+                    .withEndAction {
+                        mask.visibility = View.GONE
+                    }
+                    .start()
+            }
+        }
     }
 
     private fun observeViewModel() {

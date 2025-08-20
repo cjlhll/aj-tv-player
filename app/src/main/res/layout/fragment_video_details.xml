@@ -18,6 +18,14 @@
         android:layout_height="match_parent"
         android:background="@drawable/bottom_gradient" />
 
+    <!-- 滚动到第二页时显示的半透明遮罩层 -->
+    <View
+        android:id="@+id/overlay_mask"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone" />
+
     <!-- 底部内容区域 -->
     <ScrollView
         android:id="@+id/scroll_view"
