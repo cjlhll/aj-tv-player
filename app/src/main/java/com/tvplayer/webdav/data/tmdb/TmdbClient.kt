@@ -102,8 +102,11 @@ class TmdbClient @Inject constructor(
     ): MediaItem? {
         return withContext(Dispatchers.IO) {
             try {
-                val candidates = generateTVCandidates(seriesName)
-                Log.d(TAG, "TV candidates: ${candidates.joinToString()} S${seasonNumber}E${episodeNumber}")
+                val yearExtractionResult = extractTVYearAndTitle(seriesName)
+                val cleanTitle = yearExtractionResult.first
+                val year = yearExtractionResult.second
+                val candidates = generateTVCandidates(cleanTitle)
+                Log.d(TAG, "TV candidates: ${candidates.joinToString()} (year=$year) S${seasonNumber}E${episodeNumber}")
 
                 var tvShows: List<TmdbTVShow>? = null
                 var matchedCandidate: String? = null
@@ -111,14 +114,16 @@ class TmdbClient @Inject constructor(
                     // 先 zh-CN，若无结果再 en-US
                     val searchZh = apiService.searchTVShows(
                         apiKey = API_KEY,
-                        query = candidate
+                        query = candidate,
+                        firstAirDateYear = year
                     )
                     tvShows = if (searchZh.isSuccessful) searchZh.body()?.results else null
                     if (tvShows.isNullOrEmpty()) {
                         val searchEn = apiService.searchTVShows(
                             apiKey = API_KEY,
                             query = candidate,
-                            language = "en-US"
+                            language = "en-US",
+                            firstAirDateYear = year
                         )
                         if (searchEn.isSuccessful) {
                             tvShows = searchEn.body()?.results
@@ -222,12 +227,58 @@ class TmdbClient @Inject constructor(
     }
 
     /**
+     * 从电视剧标题中提取年份和清洁标题
+     * 支持多种年份格式：
+     * - 神话2025 (直接跟随)
+     * - 神话.2025 (点分隔)
+     * - 神话(2025) (英文括号)
+     * - 神话（2025） (中文括号)
+     * @param seriesName 原始电视剧名称
+     * @return Pair<清洁标题, 年份>
+     */
+    private fun extractTVYearAndTitle(seriesName: String): Pair<String, Int?> {
+        // 定义年份提取的正则模式，支持多种格式
+        val yearPatterns = listOf(
+            // 直接跟随年份：神话2025
+            Regex("^(.+?)(19|20)\\d{2}$"),
+            // 点分隔年份：神话.2025
+            Regex("^(.+?)\\.(19|20)\\d{2}$"),
+            // 英文括号年份：神话(2025)
+            Regex("^(.+?)\\((19|20)\\d{2}\\)$"),
+            // 中文括号年份：神话（2025）
+            Regex("^(.+?)（(19|20)\\d{2}）$"),
+            // 其他括号格式：神话 (2025)、神话[2025]等
+            Regex("^(.+?)\\s*[\\(\\[（]\\s*(19|20)\\d{2}\\s*[\\)\\]）]$")
+        )
+
+        for (pattern in yearPatterns) {
+            val match = pattern.find(seriesName.trim())
+            if (match != null) {
+                val titlePart = match.groupValues[1].trim()
+                val yearString = match.value.filter { it.isDigit() }.takeLast(4)
+                val year = yearString.toIntOrNull()
+
+                // 验证年份是否合理（1900-2030）
+                if (year != null && year in 1900..2030) {
+                    Log.d(TAG, "Extracted TV year: $year from title: $seriesName -> clean title: $titlePart")
+                    return Pair(titlePart, year)
+                }
+            }
+        }
+
+        // 如果没有找到年份，返回原标题和null
+        return Pair(seriesName, null)
+    }
+
+    /**
      * 清理电视剧标题
+     * 注意：年份应该已经在 extractTVYearAndTitle 中处理过了
      */
     private fun cleanTVTitle(seriesName: String): String {
         return seriesName
             .replace(Regex("\\b(Season|S)\\s*\\d+\\b", RegexOption.IGNORE_CASE), "")
-            .replace(Regex("[\\[\\(].*?[\\]\\)]"), "")
+            // 移除剩余的括号内容（但不包括年份，因为年份已经被提取）
+            .replace(Regex("[\\[\\(（](?!\\d{4})[^\\]\\)）]*[\\]\\)）]"), "")
             .replace(Regex("[._-]"), " ")
             .replace(Regex("\\s+"), " ")
             .trim()
@@ -283,7 +334,7 @@ class TmdbClient @Inject constructor(
             id = "tv_${tvShow.id}_s${seasonNumber}_e${episodeNumber}",
             title = episodeTitle ?: "第${episodeNumber}集",
             originalTitle = tvShow.originalName,
-            overview = episodeOverview ?: tvShow.overview,
+            overview = tvShow.overview,
             posterPath = tvShow.posterPath?.let { "${TmdbApiService.IMAGE_BASE_URL}${TmdbApiService.POSTER_SIZE_W500}$it" },
             backdropPath = tvShow.backdropPath?.let { "${TmdbApiService.IMAGE_BASE_URL}${TmdbApiService.BACKDROP_SIZE_W1280}$it" },
             releaseDate = releaseDate,

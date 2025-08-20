@@ -42,7 +42,8 @@ interface TmdbApiService {
         @Query("query") query: String,
         @Query("language") language: String = "zh-CN",
         @Query("page") page: Int = 1,
-        @Query("include_adult") includeAdult: Boolean = false
+        @Query("include_adult") includeAdult: Boolean = false,
+        @Query("first_air_date_year") firstAirDateYear: Int? = null
     ): Response<TmdbTVSearchResponse>
 
     /**
