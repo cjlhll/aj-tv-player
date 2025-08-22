@@ -140,22 +140,43 @@
                     android:maxLines="2"
                     android:ellipsize="end" />
 
-                <!-- 播放按钮 -->
-                <Button
-                    android:id="@+id/btn_play"
+                <!-- 播放按钮容器 -->
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="播放"
-                    android:textSize="18sp"
-                    android:textColor="@color/text_primary"
-                    android:background="@drawable/btn_play_background"
-                    android:paddingStart="32dp"
-                    android:paddingEnd="32dp"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:layout_marginBottom="48dp" />
+                    android:orientation="vertical"
+                    android:layout_marginBottom="48dp">
+
+                    <!-- 播放按钮 -->
+                    <Button
+                        android:id="@+id/btn_play"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="播放"
+                        android:textSize="18sp"
+                        android:textColor="@color/text_primary"
+                        android:background="@drawable/btn_play_background"
+                        android:paddingStart="32dp"
+                        android:paddingEnd="32dp"
+                        android:paddingTop="12dp"
+                        android:paddingBottom="12dp"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true" />
+
+                    <!-- 播放进度条 -->
+                    <ProgressBar
+                        android:id="@+id/progress_playback"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="200dp"
+                        android:layout_height="4dp"
+                        android:layout_marginTop="8dp"
+                        android:max="100"
+                        android:progress="0"
+                        android:progressTint="@color/accent_color"
+                        android:progressBackgroundTint="@color/progress_background"
+                        android:visibility="gone" />
+
+                </LinearLayout>
 
                 </LinearLayout>
 

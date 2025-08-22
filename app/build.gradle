@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace 'com.tvplayer.webdav'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.tvplayer.webdav"
         minSdk 21
-        targetSdk 34
+        targetSdk 35
         versionCode 1
         versionName "1.0"
 
@@ -55,51 +55,54 @@ dependencies {
     implementation 'com.google.android.material:material:1.10.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.cardview:cardview:1.0.0'
-    
+
     // Android TV Leanback
     implementation 'androidx.leanback:leanback:1.0.0'
     implementation 'androidx.leanback:leanback-preference:1.0.0'
-    
+
     // ViewModel and LiveData
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.7.0'
     implementation 'androidx.activity:activity-ktx:1.8.2'
     implementation 'androidx.fragment:fragment-ktx:1.6.2'
-    
+
     // Navigation
     implementation 'androidx.navigation:navigation-fragment-ktx:2.7.5'
     implementation 'androidx.navigation:navigation-ui-ktx:2.7.5'
-    
-    // ExoPlayer
+
+    // ExoPlayer (already present for other use cases)
     implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
     implementation 'com.google.android.exoplayer:exoplayer-ui:2.19.1'
-    
+
+    // GSYVideoPlayer - full package with default UI and engines (MavenCentral)
+    implementation 'io.github.carguo:gsyvideoplayer:11.1.0'
+
     // Networking
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
-    
+
     // WebDAV - Using custom implementation with OkHttp
     // implementation 'com.github.thegrizzlylabs:sardine-android:0.8' // Removed due to dependency issues
     // We now use a custom WebDAV client implementation
-    
+
     // Dependency Injection
     implementation 'com.google.dagger:hilt-android:2.48'
     kapt 'com.google.dagger:hilt-compiler:2.48'
-    
+
     // Room Database
     implementation 'androidx.room:room-runtime:2.5.0'
     implementation 'androidx.room:room-ktx:2.5.0'
     kapt 'androidx.room:room-compiler:2.5.0'
-    
+
     // Image Loading
     implementation 'com.github.bumptech.glide:glide:4.16.0'
     // kapt 'com.github.bumptech.glide:compiler:4.16.0' // 暂时注释，稍后添加
-    
+
     // Coroutines
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
-    
+
     // Testing
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

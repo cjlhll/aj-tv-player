@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
@@ -30,7 +31,7 @@ class HomeFragment : Fragment() {
     private lateinit var rvContinueWatching: RecyclerView
     private lateinit var rvMovies: RecyclerView
     private lateinit var rvTVShows: RecyclerView
-    private var ivBackdrop: android.widget.ImageView? = null
+    private var ivBackdrop: ImageView? = null
 
     private lateinit var categoryAdapter: CategoryAdapter
     private lateinit var recentlyAddedAdapter: MediaPosterAdapter
@@ -58,12 +59,12 @@ class HomeFragment : Fragment() {
     }
 
     private fun initViews(view: View) {
-        rvCategories = view.findViewById(R.id.rv_categories)
-        rvRecentlyAdded = view.findViewById(R.id.rv_recently_added)
-        rvContinueWatching = view.findViewById(R.id.rv_continue_watching)
-        rvMovies = view.findViewById(R.id.rv_movies)
-        rvTVShows = view.findViewById(R.id.rv_tv_shows)
-        ivBackdrop = view.findViewById(R.id.iv_backdrop)
+        rvCategories = view.findViewById<RecyclerView>(R.id.rv_categories)
+        rvRecentlyAdded = view.findViewById<RecyclerView>(R.id.rv_recently_added)
+        rvContinueWatching = view.findViewById<RecyclerView>(R.id.rv_continue_watching)
+        rvMovies = view.findViewById<RecyclerView>(R.id.rv_movies)
+        rvTVShows = view.findViewById<RecyclerView>(R.id.rv_tv_shows)
+        ivBackdrop = view.findViewById<ImageView>(R.id.iv_backdrop)
 
     }
 

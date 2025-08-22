@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
@@ -17,9 +18,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.tvplayer.webdav.R
 import com.tvplayer.webdav.data.model.Actor
 import com.tvplayer.webdav.data.model.MediaItem
+import com.tvplayer.webdav.data.model.WebDAVFile
+import com.tvplayer.webdav.data.storage.WebDAVServerStorage
+import com.tvplayer.webdav.data.webdav.SimpleWebDAVClient
 import dagger.hilt.android.AndroidEntryPoint
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
+import javax.inject.Inject
 
 /**
  * 视频详情页面Fragment
@@ -30,12 +35,19 @@ class VideoDetailsFragment : Fragment() {
 
     private val viewModel: VideoDetailsViewModel by viewModels()
     
+    @Inject
+    lateinit var webdavClient: SimpleWebDAVClient
+    
+    @Inject
+    lateinit var serverStorage: WebDAVServerStorage
+    
     private lateinit var mediaItem: MediaItem
     
     // UI组件
     private lateinit var ivBackdrop: ImageView
     private lateinit var tvTitle: TextView
     private lateinit var btnPlay: Button
+    private lateinit var progressPlayback: ProgressBar
     private lateinit var tvRating: TextView
     private lateinit var tvYear: TextView
     private lateinit var tvDuration: TextView
@@ -108,37 +120,38 @@ class VideoDetailsFragment : Fragment() {
     }
 
     private fun initViews(view: View) {
-        ivBackdrop = view.findViewById(R.id.iv_backdrop)
-        tvTitle = view.findViewById(R.id.tv_title)
-        btnPlay = view.findViewById(R.id.btn_play)
-        tvRating = view.findViewById(R.id.tv_rating)
-        tvYear = view.findViewById(R.id.tv_year)
-        tvDuration = view.findViewById(R.id.tv_duration)
-        tvGenre = view.findViewById(R.id.tv_genre)
-        tvFileSize = view.findViewById(R.id.tv_file_size)
-        tvOverview = view.findViewById(R.id.tv_overview)
-        movieInfoContainer = view.findViewById(R.id.movie_info_container)
-        scrollView = view.findViewById(R.id.scroll_view)
+        ivBackdrop = view.findViewById<ImageView>(R.id.iv_backdrop)
+        tvTitle = view.findViewById<TextView>(R.id.tv_title)
+        btnPlay = view.findViewById<Button>(R.id.btn_play)
+        progressPlayback = view.findViewById<ProgressBar>(R.id.progress_playback)
+        tvRating = view.findViewById<TextView>(R.id.tv_rating)
+        tvYear = view.findViewById<TextView>(R.id.tv_year)
+        tvDuration = view.findViewById<TextView>(R.id.tv_duration)
+        tvGenre = view.findViewById<TextView>(R.id.tv_genre)
+        tvFileSize = view.findViewById<TextView>(R.id.tv_file_size)
+        tvOverview = view.findViewById<TextView>(R.id.tv_overview)
+        movieInfoContainer = view.findViewById<LinearLayout>(R.id.movie_info_container)
+        scrollView = view.findViewById<ScrollView>(R.id.scroll_view)
 
         // 计算第一屏高度的像素值
         firstScreenHeightPx = (FIRST_SCREEN_HEIGHT * resources.displayMetrics.density).toInt()
 
         // 初始化演员表相关组件（可选的，因为可能不存在）
         try {
-            rvActors = view.findViewById(R.id.rv_actors)
-            tvFilename = view.findViewById(R.id.tv_filename)
-            tvSourcePath = view.findViewById(R.id.tv_source_path)
-            tvDurationSize = view.findViewById(R.id.tv_duration_size)
-            btnBackToTop = view.findViewById(R.id.btn_back_to_top)
+            rvActors = view.findViewById<RecyclerView>(R.id.rv_actors)
+            tvFilename = view.findViewById<TextView>(R.id.tv_filename)
+            tvSourcePath = view.findViewById<TextView>(R.id.tv_source_path)
+            tvDurationSize = view.findViewById<TextView>(R.id.tv_duration_size)
+            btnBackToTop = view.findViewById<View>(R.id.btn_back_to_top)
         } catch (e: Exception) {
             // 如果找不到这些组件，说明布局没有包含演员表部分
         }
 
         // 初始化TV系列组件
         try {
-            tvSeriesSection = view.findViewById(R.id.tv_series_section)
-            spinnerSeason = view.findViewById(R.id.spinner_season)
-            rvEpisodes = view.findViewById(R.id.rv_episodes)
+            tvSeriesSection = view.findViewById<LinearLayout>(R.id.tv_series_section)
+            spinnerSeason = view.findViewById<android.widget.Spinner>(R.id.spinner_season)
+            rvEpisodes = view.findViewById<RecyclerView>(R.id.rv_episodes)
             android.util.Log.d("VideoDetailsFragment", "TV series components initialized: " +
                 "tvSeriesSection=${tvSeriesSection != null}, " +
                 "spinnerSeason=${spinnerSeason != null}, " +
@@ -253,6 +266,9 @@ class VideoDetailsFragment : Fragment() {
         btnPlay.setOnClickListener {
             startPlayback()
         }
+        
+        // 初始化播放按钮文字
+        updatePlayButtonText()
 
         // 返回顶部按钮点击（如果存在）
         btnBackToTop?.setOnClickListener {
@@ -468,15 +484,400 @@ class VideoDetailsFragment : Fragment() {
         viewModel.episodes.observe(viewLifecycleOwner) { episodes ->
             setupEpisodes(episodes)
         }
+        
+        // 观察播放状态变化，实时更新播放按钮文字
+        viewModel.getCurrentPlaybackState().observe(viewLifecycleOwner) { playbackState ->
+            android.util.Log.d("VideoDetailsFragment", "Playback state changed, updating play button text")
+            updatePlayButtonText()
+        }
+    }
+
+    /**
+     * 根据播放历史更新播放按钮文字和进度条
+     */
+    private fun updatePlayButtonText() {
+        try {
+            val isTVSeries = mediaItem.mediaType == com.tvplayer.webdav.data.model.MediaType.TV_EPISODE ||
+                            mediaItem.mediaType == com.tvplayer.webdav.data.model.MediaType.TV_SERIES
+            
+            if (isTVSeries) {
+                // 电视剧逻辑
+                val playbackState = getPlaybackStateForCurrentMedia()
+                if (playbackState != null && playbackState.playbackProgress > 0) {
+                    // 有播放历史，显示集数和进度
+                    val episodeText = "第${playbackState.currentSeasonNumber}季第${playbackState.currentEpisodeNumber}集"
+                    val progressText = playbackState.getFormattedProgress()
+                    btnPlay.text = "播放 $episodeText $progressText"
+                    
+                    // 显示进度条
+                    val progressPercentage = playbackState.getProgressPercentage()
+                    progressPlayback.progress = (progressPercentage * 100).toInt()
+                    progressPlayback.visibility = View.VISIBLE
+                    
+                    android.util.Log.d("VideoDetailsFragment", "Updated TV play button: 播放 $episodeText $progressText, progress: ${(progressPercentage * 100).toInt()}%")
+                } else {
+                    // 没有播放历史，播放第一集
+                    btnPlay.text = "播放 第1季第1集"
+                    progressPlayback.visibility = View.GONE
+                    android.util.Log.d("VideoDetailsFragment", "Updated TV play button: 播放 第1季第1集")
+                }
+            } else {
+                // 电影逻辑
+                val playbackState = getPlaybackStateForCurrentMedia()
+                if (playbackState != null && playbackState.playbackProgress > 0) {
+                    // 有播放历史，显示播放进度
+                    val progressText = playbackState.getFormattedProgress()
+                    btnPlay.text = "播放 $progressText"
+                    
+                    // 显示进度条
+                    val progressPercentage = playbackState.getProgressPercentage()
+                    progressPlayback.progress = (progressPercentage * 100).toInt()
+                    progressPlayback.visibility = View.VISIBLE
+                    
+                    android.util.Log.d("VideoDetailsFragment", "Updated movie play button: 播放 $progressText, progress: ${(progressPercentage * 100).toInt()}%")
+                } else {
+                    // 没有播放历史或者从头开始
+                    btnPlay.text = "播放"
+                    progressPlayback.visibility = View.GONE
+                    android.util.Log.d("VideoDetailsFragment", "Updated movie play button: 播放")
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("VideoDetailsFragment", "Error updating play button text and progress", e)
+            btnPlay.text = "播放"
+            progressPlayback.visibility = View.GONE
+        }
+    }
+    
+    /**
+     * 获取当前媒体的播放状态
+     */
+    private fun getPlaybackStateForCurrentMedia(): com.tvplayer.webdav.data.model.PlaybackState? {
+        return try {
+            // 对于电影，使用文件路径作为seriesId
+            val isTVSeries = mediaItem.mediaType == com.tvplayer.webdav.data.model.MediaType.TV_EPISODE ||
+                            mediaItem.mediaType == com.tvplayer.webdav.data.model.MediaType.TV_SERIES
+                            
+            if (isTVSeries) {
+                // TV系列使用seriesId
+                val seriesId = mediaItem.seriesId
+                if (!seriesId.isNullOrBlank()) {
+                    viewModel.getPlaybackState(seriesId)
+                } else {
+                    null
+                }
+            } else {
+                // 电影使用文件路径作为唯一标识符
+                val movieId = mediaItem.filePath
+                if (movieId.isNotBlank()) {
+                    viewModel.getPlaybackState(movieId)
+                } else {
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("VideoDetailsFragment", "Error getting playback state", e)
+            null
+        }
     }
 
     private fun startPlayback() {
-        // TODO: 启动视频播放器
-        // 这里将来会启动PlayerActivity
-        android.widget.Toast.makeText(context, "开始播放: ${mediaItem.getDisplayTitle()}", android.widget.Toast.LENGTH_SHORT).show()
+        val isTVSeries = mediaItem.mediaType == com.tvplayer.webdav.data.model.MediaType.TV_EPISODE ||
+                        mediaItem.mediaType == com.tvplayer.webdav.data.model.MediaType.TV_SERIES
+        
+        if (isTVSeries) {
+            // 电视剧播放逻辑
+            startTVSeriesPlayback()
+        } else {
+            // 电影播放逻辑
+            startMoviePlayback()
+        }
+    }
+    
+    /**
+     * 电视剧播放逻辑
+     */
+    private fun startTVSeriesPlayback() {
+        try {
+            val seriesId = mediaItem.seriesId
+            if (seriesId.isNullOrBlank()) {
+                android.widget.Toast.makeText(context, "无法播放：电视剧ID为空", android.widget.Toast.LENGTH_SHORT).show()
+                return
+            }
+            
+            // 获取当前系列的所有剧集
+            val allItems = viewModel.getAllMediaItems()
+            val seriesEpisodes = allItems.filter { item ->
+                item.seriesId == seriesId &&
+                item.mediaType == com.tvplayer.webdav.data.model.MediaType.TV_EPISODE
+            }
+            
+            if (seriesEpisodes.isEmpty()) {
+                android.widget.Toast.makeText(context, "无法播放：找不到剧集文件", android.widget.Toast.LENGTH_SHORT).show()
+                return
+            }
+            
+            // 按季数和集数排序
+            val sortedEpisodes = seriesEpisodes.sortedWith(
+                compareBy<com.tvplayer.webdav.data.model.MediaItem> { it.seasonNumber ?: 1 }
+                    .thenBy { it.episodeNumber ?: 1 }
+            )
+            
+            // 获取播放历史
+            val playbackState = viewModel.getPlaybackState(seriesId)
+            val targetEpisode = if (playbackState != null) {
+                // 有播放历史，找到对应的剧集
+                sortedEpisodes.find { episode ->
+                    episode.seasonNumber == playbackState.currentSeasonNumber &&
+                    episode.episodeNumber == playbackState.currentEpisodeNumber
+                } ?: sortedEpisodes.first() // 如果找不到，就播放第一集
+            } else {
+                // 没有播放历史，播放第一集
+                sortedEpisodes.first()
+            }
+            
+            val startPosition = playbackState?.playbackProgress ?: 0L
+            
+            android.util.Log.d("VideoDetailsFragment", "Starting TV series playback:")
+            android.util.Log.d("VideoDetailsFragment", "  Series: $seriesId")
+            android.util.Log.d("VideoDetailsFragment", "  Episode: S${targetEpisode.seasonNumber}E${targetEpisode.episodeNumber}")
+            android.util.Log.d("VideoDetailsFragment", "  Title: ${targetEpisode.title}")
+            android.util.Log.d("VideoDetailsFragment", "  File: ${targetEpisode.filePath}")
+            android.util.Log.d("VideoDetailsFragment", "  Start position: ${startPosition}s")
+            
+            // 启动具体剧集的播放
+            startEpisodePlayback(targetEpisode, startPosition)
+            
+        } catch (e: Exception) {
+            android.util.Log.e("VideoDetailsFragment", "Error starting TV series playback", e)
+            android.widget.Toast.makeText(context, "播放失败：${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    /**
+     * 启动具体剧集的播放
+     */
+    private fun startEpisodePlayback(episode: com.tvplayer.webdav.data.model.MediaItem, startPosition: Long) {
+        // 使用WebDAV客户端生成正确的视频URL
+        val rawPath = episode.filePath
+        val path = try { decodeFilePath(rawPath) } catch (_: Exception) { rawPath }
+        
+        // 获取当前WebDAV服务器配置
+        val server = serverStorage.getServer()
+        if (server == null) {
+            android.widget.Toast.makeText(context, "无法播放：未配置WebDAV服务器", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // 生成简化的WebDAV URL
+        val webdavUrl = try {
+            val baseUrl = server.url.removeSuffix("/")
+            val normalizedPath = path.removePrefix("/")
+            "$baseUrl/$normalizedPath"
+        } catch (e: Exception) {
+            android.util.Log.e("VideoDetailsFragment", "Failed to generate WebDAV URL", e)
+            android.widget.Toast.makeText(context, "无法生成视频URL: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // 传递认证信息给PlayerActivity
+        val uri = android.net.Uri.parse(webdavUrl)
+        val intent = com.tvplayer.webdav.ui.player.PlayerActivity.intentFor(requireContext(), episode.getDisplayTitle(), uri)
+        
+        // 将认证信息作为额外参数传递
+        intent.putExtra("webdav_username", server.username)
+        intent.putExtra("webdav_password", server.password)
+        
+        // 传递播放位置信息
+        intent.putExtra("start_position", startPosition)
+        
+        // 传递媒体标识符用于保存播放状态
+        val seriesId = episode.seriesId ?: episode.filePath
+        intent.putExtra("media_id", seriesId)
+        intent.putExtra("media_title", episode.getDisplayTitle())
+        
+        startActivity(intent)
+        
+        // 开始播放时更新播放状态
+        updateTVSeriesPlaybackStateOnStart(episode, startPosition)
+    }
+    
+    /**
+     * 电影播放逻辑
+     */
+    private fun startMoviePlayback() {
+        // 使用WebDAV客户端生成正确的视频URL
+        val rawPath = mediaItem.filePath
+        val path = try { decodeFilePath(rawPath) } catch (_: Exception) { rawPath }
+        
+        // 获取当前WebDAV服务器配置
+        val server = serverStorage.getServer()
+        if (server == null) {
+            android.widget.Toast.makeText(context, "无法播放：未配置WebDAV服务器", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // 获取播放历史信息
+        val playbackState = getPlaybackStateForCurrentMedia()
+        val startPosition = playbackState?.playbackProgress ?: 0L // 秒为单位
+        
+        android.util.Log.d("VideoDetailsFragment", "Starting movie playback from position: ${startPosition}s")
+        
+        // 生成简化的WebDAV URL，防止编码问题导致循环
+        val webdavUrl = try {
+            val baseUrl = server.url.removeSuffix("/")
+            val normalizedPath = path.removePrefix("/")
+            "$baseUrl/$normalizedPath"
+        } catch (e: Exception) {
+            android.util.Log.e("VideoDetailsFragment", "Failed to generate WebDAV URL", e)
+            android.widget.Toast.makeText(context, "无法生成视频URL: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // 传递认证信息给PlayerActivity
+        val uri = android.net.Uri.parse(webdavUrl)
+        val intent = com.tvplayer.webdav.ui.player.PlayerActivity.intentFor(requireContext(), mediaItem.getDisplayTitle(), uri)
+        
+        // 将认证信息作为额外参数传递
+        intent.putExtra("webdav_username", server.username)
+        intent.putExtra("webdav_password", server.password)
+        
+        // 传递播放位置信息
+        intent.putExtra("start_position", startPosition)
+        
+        // 传递媒体标识符用于保存播放状态
+        val mediaId = mediaItem.filePath // 电影使用文件路径
+        intent.putExtra("media_id", mediaId)
+        intent.putExtra("media_title", mediaItem.getDisplayTitle())
+        
+        startActivity(intent)
+        
+        // 开始播放时更新播放状态
+        updatePlaybackStateOnStart(mediaId, startPosition)
+    }
 
-        // 模拟播放器启动
-        viewModel.startPlayback()
+    /**
+     * 播放指定的剧集（从指定位置开始）
+     */
+    private fun startSpecificEpisodePlayback(episode: com.tvplayer.webdav.data.model.MediaItem, startPosition: Long) {
+        try {
+            android.util.Log.d("VideoDetailsFragment", "Starting specific episode playback:")
+            android.util.Log.d("VideoDetailsFragment", "  Episode: S${episode.seasonNumber}E${episode.episodeNumber}")
+            android.util.Log.d("VideoDetailsFragment", "  Title: ${episode.title}")
+            android.util.Log.d("VideoDetailsFragment", "  File: ${episode.filePath}")
+            android.util.Log.d("VideoDetailsFragment", "  Start position: ${startPosition}s")
+            
+            // 直接启动该剧集的播放
+            startEpisodePlayback(episode, startPosition)
+            
+            // 更新播放状态为该剧集
+            updateTVSeriesPlaybackStateOnStart(episode, startPosition)
+            
+        } catch (e: Exception) {
+            android.util.Log.e("VideoDetailsFragment", "Error starting specific episode playback", e)
+            android.widget.Toast.makeText(context, "播放失败：${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * 电视剧开始播放时更新播放状态
+     */
+    private fun updateTVSeriesPlaybackStateOnStart(episode: com.tvplayer.webdav.data.model.MediaItem, startPosition: Long) {
+        try {
+            val seriesId = episode.seriesId
+            if (seriesId.isNullOrBlank()) {
+                android.util.Log.w("VideoDetailsFragment", "No seriesId for TV episode, cannot update playback state")
+                return
+            }
+            
+            val seasonNumber = episode.seasonNumber ?: 1
+            val episodeNumber = episode.episodeNumber ?: 1
+            
+            val existingState = viewModel.getPlaybackState(seriesId)
+            if (existingState != null) {
+                // 更新现有状态
+                val updatedState = existingState.copy(
+                    currentSeasonNumber = seasonNumber,
+                    currentEpisodeNumber = episodeNumber,
+                    playbackProgress = startPosition,
+                    totalDuration = episode.duration,
+                    lastPlayedTimestamp = java.util.Date()
+                )
+                viewModel.savePlaybackState(updatedState)
+            } else {
+                // 创建新的播放状态
+                val newState = com.tvplayer.webdav.data.model.PlaybackState(
+                    seriesId = seriesId,
+                    currentSeasonNumber = seasonNumber,
+                    currentEpisodeNumber = episodeNumber,
+                    playbackProgress = startPosition,
+                    totalDuration = episode.duration
+                )
+                viewModel.savePlaybackState(newState)
+            }
+            
+            android.util.Log.d("VideoDetailsFragment", "Updated TV series playback state: $seriesId S${seasonNumber}E${episodeNumber}, position: ${startPosition}s")
+        } catch (e: Exception) {
+            android.util.Log.e("VideoDetailsFragment", "Error updating TV series playback state", e)
+        }
+    }
+
+    /**
+     * 开始播放时更新播放状态
+     */
+    private fun updatePlaybackStateOnStart(mediaId: String, startPosition: Long) {
+        try {
+            val isTVSeries = mediaItem.mediaType == com.tvplayer.webdav.data.model.MediaType.TV_EPISODE ||
+                            mediaItem.mediaType == com.tvplayer.webdav.data.model.MediaType.TV_SERIES
+            
+            if (isTVSeries) {
+                // TV系列使用现有的PlaybackState管理
+                val seriesId = mediaItem.seriesId
+                if (!seriesId.isNullOrBlank()) {
+                    val existingState = viewModel.getPlaybackState(seriesId)
+                    if (existingState != null) {
+                        // 更新现有状态的最后播放时间
+                        val updatedState = existingState.copy(lastPlayedTimestamp = java.util.Date())
+                        viewModel.savePlaybackState(updatedState)
+                    } else {
+                        // 创建新的播放状态
+                        val newState = com.tvplayer.webdav.data.model.PlaybackState(
+                            seriesId = seriesId,
+                            currentSeasonNumber = mediaItem.seasonNumber ?: 1,
+                            currentEpisodeNumber = mediaItem.episodeNumber ?: 1,
+                            playbackProgress = startPosition,
+                            totalDuration = mediaItem.duration
+                        )
+                        viewModel.savePlaybackState(newState)
+                    }
+                }
+            } else {
+                // 电影使用文件路径作为seriesId，创建一个简单的PlaybackState
+                val existingState = viewModel.getPlaybackState(mediaId)
+                if (existingState != null) {
+                    // 更新现有状态
+                    val updatedState = existingState.copy(
+                        lastPlayedTimestamp = java.util.Date(),
+                        playbackProgress = startPosition
+                    )
+                    viewModel.savePlaybackState(updatedState)
+                } else {
+                    // 创建新的电影播放状态
+                    val newState = com.tvplayer.webdav.data.model.PlaybackState(
+                        seriesId = mediaId, // 使用文件路径作为唯一标识符
+                        currentSeasonNumber = 1, // 电影不需要季数
+                        currentEpisodeNumber = 1, // 电影不需要集数
+                        playbackProgress = startPosition,
+                        totalDuration = mediaItem.duration
+                    )
+                    viewModel.savePlaybackState(newState)
+                }
+            }
+            
+            android.util.Log.d("VideoDetailsFragment", "Updated playback state for mediaId: $mediaId, position: ${startPosition}s")
+        } catch (e: Exception) {
+            android.util.Log.e("VideoDetailsFragment", "Error updating playback state on start", e)
+        }
     }
 
     private fun setupActorsIfAvailable() {
@@ -1450,10 +1851,13 @@ class VideoDetailsFragment : Fragment() {
             android.util.Log.d("VideoDetailsFragment", "Setting up episode adapter and layout manager")
             episodeAdapter = EpisodeAdapter(
                 onEpisodeClick = { episode ->
-                    // 播放对应的媒体文件
-                    val mediaItem = episode.mediaItem
-                    android.widget.Toast.makeText(context, "播放 ${episode.getDisplayTitle()}: ${episode.name}\n文件: ${mediaItem.filePath}", android.widget.Toast.LENGTH_LONG).show()
-                    // TODO: 启动播放器播放 mediaItem
+                    // 直接播放选中的剧集（从0开始）
+                    val targetMediaItem = episode.mediaItem
+                    android.util.Log.d("VideoDetailsFragment", "Episode clicked: S${targetMediaItem.seasonNumber}E${targetMediaItem.episodeNumber}")
+                    android.util.Log.d("VideoDetailsFragment", "Episode file: ${targetMediaItem.filePath}")
+                    
+                    // 直接播放该剧集，从0开始
+                    startSpecificEpisodePlayback(targetMediaItem, 0L)
                 },
                 onItemFocused = { episode ->
                     // 可以在这里处理焦点变化，比如更新详情信息
