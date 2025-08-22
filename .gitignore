@@ -47,6 +47,7 @@ local.properties
 
 # VS Code
 .vscode/
+.idea/
 
 # ===== OS junk =====
 .DS_Store
