@@ -46,22 +46,13 @@ class TmdbClient @Inject constructor(
 
                 for (candidate in candidates) {
                     // 先 zh-CN，若无结果再 en-US
-                    Log.d(TAG, "Searching for movie candidate: $candidate (year=$year)")
                     val searchZh = apiService.searchMovies(
                         apiKey = API_KEY,
                         query = candidate,
                         year = year
                     )
-                    var movies = if (searchZh.isSuccessful) {
-                        Log.d(TAG, "Chinese search successful for: $candidate")
-                        searchZh.body()?.results
-                    } else {
-                        Log.w(TAG, "Chinese search failed for: $candidate, code: ${searchZh.code()}")
-                        null
-                    }
-
+                    var movies = if (searchZh.isSuccessful) searchZh.body()?.results else null
                     if (movies.isNullOrEmpty()) {
-                        Log.d(TAG, "Trying English search for: $candidate")
                         val searchEn = apiService.searchMovies(
                             apiKey = API_KEY,
                             query = candidate,
@@ -69,10 +60,7 @@ class TmdbClient @Inject constructor(
                             year = year
                         )
                         if (searchEn.isSuccessful) {
-                            Log.d(TAG, "English search successful for: $candidate")
                             movies = searchEn.body()?.results
-                        } else {
-                            Log.w(TAG, "English search failed for: $candidate, code: ${searchEn.code()}")
                         }
                     }
                     if (!movies.isNullOrEmpty()) {

@@ -43,16 +43,4 @@
 
     <!-- Progress colors -->
     <color name="progress_background">#FF333333</color>
-    
-    <!-- Subtitle colors -->
-    <color name="star_color">#FFFFD700</color>
-    <color name="subtitle_background">#80000000</color>
-    <color name="subtitle_text">#FFFFFFFF</color>
-    <color name="subtitle_outline">#FF000000</color>
-    <color name="subtitle_shadow">#80000000</color>
-    
-    <!-- Badge colors -->
-    <color name="rating_badge">#FFFF5722</color>
-    <color name="status_badge">#FF4CAF50</color>
-    <color name="language_badge">#FF2196F3</color>
 </resources>

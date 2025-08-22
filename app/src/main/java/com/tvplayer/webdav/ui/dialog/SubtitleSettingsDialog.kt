@@ -66,11 +66,11 @@ class SubtitleSettingsDialog(
     private fun setupControls() {
         // 字体大小设置
         fontSizeSeekBar.max = 40
-        fontSizeSeekBar.progress = (tempConfig.textSize.toInt() - 10).coerceIn(0, 40)
+        fontSizeSeekBar.progress = (tempConfig.fontSize - 10).coerceIn(0, 40)
         fontSizeSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
-                    tempConfig = tempConfig.copy(textSize = (progress + 10).toFloat())
+                    tempConfig = tempConfig.copy(fontSize = progress + 10)
                     updateFontSizeText()
                     updatePreview()
                 }
@@ -78,16 +78,14 @@ class SubtitleSettingsDialog(
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
-
+        
         // 时间偏移设置
         timeOffsetSeekBar.max = 600 // -30s 到 +30s，精度0.1s
-        val offsetSeconds = tempConfig.globalOffsetMs / 1000.0f
-        timeOffsetSeekBar.progress = ((offsetSeconds + 30) * 10).toInt().coerceIn(0, 600)
+        timeOffsetSeekBar.progress = ((tempConfig.timeOffset + 30) * 10).toInt().coerceIn(0, 600)
         timeOffsetSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
-                    val newOffsetSeconds = (progress / 10.0f) - 30f
-                    tempConfig = tempConfig.copy(globalOffsetMs = (newOffsetSeconds * 1000).toLong())
+                    tempConfig = tempConfig.copy(timeOffset = (progress / 10.0f) - 30f)
                     updateTimeOffsetText()
                 }
             }
@@ -100,10 +98,10 @@ class SubtitleSettingsDialog(
         val fontColorAdapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, fontColors)
         fontColorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         fontColorSpinner.adapter = fontColorAdapter
-        fontColorSpinner.setSelection(getColorIndex(tempConfig.textColor))
+        fontColorSpinner.setSelection(getColorIndex(tempConfig.fontColor))
         fontColorSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                tempConfig = tempConfig.copy(textColor = getColorFromIndex(position))
+                tempConfig = tempConfig.copy(fontColor = getColorFromIndex(position))
                 updatePreview()
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
@@ -142,26 +140,24 @@ class SubtitleSettingsDialog(
     }
 
     private fun updateFontSizeText() {
-        fontSizeText.text = "${tempConfig.textSize.toInt()}sp"
+        fontSizeText.text = "${tempConfig.fontSize}sp"
     }
 
     private fun updateTimeOffsetText() {
-        val offsetSeconds = tempConfig.globalOffsetMs / 1000.0f
-        timeOffsetText.text = String.format("%.1fs", offsetSeconds)
+        timeOffsetText.text = String.format("%.1fs", tempConfig.timeOffset)
     }
 
     private fun updatePreview() {
-        previewText.textSize = tempConfig.textSize
-        previewText.setTextColor(tempConfig.textColor)
+        previewText.textSize = tempConfig.fontSize.toFloat()
+        previewText.setTextColor(tempConfig.fontColor)
         previewText.setBackgroundColor(tempConfig.backgroundColor)
     }
 
     private fun resetToDefault() {
         tempConfig = SubtitleConfig.getDefault()
-        fontSizeSeekBar.progress = (tempConfig.textSize.toInt() - 10).coerceIn(0, 40)
-        val offsetSeconds = tempConfig.globalOffsetMs / 1000.0f
-        timeOffsetSeekBar.progress = ((offsetSeconds + 30) * 10).toInt().coerceIn(0, 600)
-        fontColorSpinner.setSelection(getColorIndex(tempConfig.textColor))
+        fontSizeSeekBar.progress = (tempConfig.fontSize - 10).coerceIn(0, 40)
+        timeOffsetSeekBar.progress = ((tempConfig.timeOffset + 30) * 10).toInt().coerceIn(0, 600)
+        fontColorSpinner.setSelection(getColorIndex(tempConfig.fontColor))
         backgroundColorSpinner.setSelection(getBackgroundColorIndex(tempConfig.backgroundColor))
         positionSpinner.setSelection(getPositionIndex(tempConfig.position))
         updateFontSizeText()
@@ -213,20 +209,20 @@ class SubtitleSettingsDialog(
         }
     }
 
-    private fun getPositionIndex(position: com.tvplayer.webdav.data.model.SubtitlePosition): Int {
+    private fun getPositionIndex(position: SubtitleConfig.Position): Int {
         return when (position) {
-            com.tvplayer.webdav.data.model.SubtitlePosition.BOTTOM -> 0
-            com.tvplayer.webdav.data.model.SubtitlePosition.TOP -> 1
-            com.tvplayer.webdav.data.model.SubtitlePosition.CENTER -> 2
+            SubtitleConfig.Position.BOTTOM -> 0
+            SubtitleConfig.Position.TOP -> 1
+            SubtitleConfig.Position.CENTER -> 2
         }
     }
 
-    private fun getPositionFromIndex(index: Int): com.tvplayer.webdav.data.model.SubtitlePosition {
+    private fun getPositionFromIndex(index: Int): SubtitleConfig.Position {
         return when (index) {
-            0 -> com.tvplayer.webdav.data.model.SubtitlePosition.BOTTOM
-            1 -> com.tvplayer.webdav.data.model.SubtitlePosition.TOP
-            2 -> com.tvplayer.webdav.data.model.SubtitlePosition.CENTER
-            else -> com.tvplayer.webdav.data.model.SubtitlePosition.BOTTOM
+            0 -> SubtitleConfig.Position.BOTTOM
+            1 -> SubtitleConfig.Position.TOP
+            2 -> SubtitleConfig.Position.CENTER
+            else -> SubtitleConfig.Position.BOTTOM
         }
     }
 }
