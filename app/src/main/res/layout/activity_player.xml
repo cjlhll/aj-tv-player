@@ -9,5 +9,57 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- 字幕控制覆盖层 -->
+    <include
+        layout="@layout/subtitle_control_overlay"
+        android:id="@+id/subtitle_control_overlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end" />
+
+    <!-- 字幕搜索进度提示 -->
+    <LinearLayout
+        android:id="@+id/layout_subtitle_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/subtitle_control_background"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:id="@+id/progress_subtitle_search"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="@android:color/white" />
+
+        <TextView
+            android:id="@+id/tv_subtitle_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="8dp"
+            android:text="正在搜索字幕..."
+            android:textColor="@android:color/white"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
+    <!-- 字幕状态显示 -->
+    <TextView
+        android:id="@+id/tv_subtitle_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_margin="16dp"
+        android:background="@drawable/subtitle_control_background"
+        android:padding="8dp"
+        android:text="内嵌: 中文"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
 </FrameLayout>
 

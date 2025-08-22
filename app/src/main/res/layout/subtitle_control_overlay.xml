@@ -57,7 +57,20 @@
         android:contentDescription="字幕同步"
         android:src="@drawable/ic_subtitle_sync"
         android:focusable="true"
-        android:nextFocusUp="@+id/btn_subtitle_settings" />
+        android:nextFocusUp="@+id/btn_subtitle_settings"
+        android:nextFocusDown="@+id/btn_subtitle_track" />
+
+    <!-- 字幕轨道选择按钮 -->
+    <ImageButton
+        android:id="@+id/btn_subtitle_track"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_margin="4dp"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:contentDescription="字幕轨道"
+        android:src="@drawable/ic_subtitle_track"
+        android:focusable="true"
+        android:nextFocusUp="@+id/btn_subtitle_sync" />
 
     <!-- 字幕时间偏移控制 -->
     <LinearLayout

@@ -2,11 +2,13 @@ package com.tvplayer.webdav.data.scanner
 
 import android.util.Log
 import com.tvplayer.webdav.data.model.MediaItem
+import com.tvplayer.webdav.data.tmdb.TmdbApiService
 import com.tvplayer.webdav.data.tmdb.TmdbClient
 import com.tvplayer.webdav.data.webdav.SimpleWebDAVClient
 import com.tvplayer.webdav.data.model.WebDAVFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.ArrayDeque
 import java.util.regex.Pattern
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -142,34 +144,57 @@ class MediaScanner @Inject constructor(
         val name = file.name
         val path = file.path
         val fileSize = file.size
-        // 根据模式提示优化分类，减少误判
-        return when (modeHint) {
-            ModeHint.MOVIE -> tmdbClient.scrapeMovie(name, path, fileSize)
-            ModeHint.TV -> {
-                // 对于TV模式，始终使用目录名作为剧名来获取剧集封面
-                val seriesName = file.path.trimEnd('/').substringBeforeLast('/').substringAfterLast('/')
 
-                // 尝试从文件名提取季集信息
-                val matcher = TV_SEASON_EPISODE_PATTERNS.firstOrNull { it.matcher(name).find() }?.matcher(name)
-                val season = if (matcher != null && matcher.find()) matcher.group(1)?.toIntOrNull() else null
-                val episode = if (matcher != null) matcher.group(2)?.toIntOrNull() else null
-
-                tmdbClient.scrapeTVShow(seriesName, season, episode, path, fileSize)
-            }
-            null -> {
-                val tvMatch = TV_SEASON_EPISODE_PATTERNS.firstOrNull { it.matcher(name).find() }
-                if (tvMatch != null) {
-                    val matcher = tvMatch.matcher(name)
-                    if (matcher.find()) {
-                        val season = matcher.group(1)?.toIntOrNull()
-                        val episode = matcher.group(2)?.toIntOrNull()
-                        val seriesName = name.substringBeforeLast('.')
-                        tmdbClient.scrapeTVShow(seriesName, season, episode, path, fileSize)
-                    } else null
-                } else {
-                    tmdbClient.scrapeMovie(name, path, fileSize)
+        return try {
+            // 确定媒体类型
+            val mediaType = when (modeHint) {
+                ModeHint.MOVIE -> com.tvplayer.webdav.data.model.MediaType.MOVIE
+                ModeHint.TV -> com.tvplayer.webdav.data.model.MediaType.TV_EPISODE
+                null -> {
+                    // 简单判断：如果文件名包含S\d+E\d+模式，则认为是电视剧
+                    if (TV_SEASON_EPISODE_PATTERNS.any { it.matcher(name).find() }) {
+                        com.tvplayer.webdav.data.model.MediaType.TV_EPISODE
+                    } else {
+                        com.tvplayer.webdav.data.model.MediaType.MOVIE
+                    }
                 }
             }
+
+            // 尝试从TMDB获取元数据
+            val scrapedItem = when (mediaType) {
+                com.tvplayer.webdav.data.model.MediaType.MOVIE -> {
+                    Log.d(TAG, "Attempting to scrape movie: $name")
+                    val result = tmdbClient.scrapeMovie(name, path, fileSize)
+                    if (result != null) {
+                        Log.d(TAG, "Successfully scraped movie: ${result.title} with poster: ${result.posterPath}")
+                    } else {
+                        Log.w(TAG, "Failed to scrape movie: $name")
+                    }
+                    result
+                }
+                com.tvplayer.webdav.data.model.MediaType.TV_EPISODE -> {
+                    // 解析电视剧信息
+                    val (seasonNumber, episodeNumber) = parseSeasonEpisode(name)
+                    val seriesName = extractSeriesName(name, path)
+                    Log.d(TAG, "Attempting to scrape TV show: $seriesName S${seasonNumber}E${episodeNumber}")
+                    val result = tmdbClient.scrapeTVShow(seriesName, seasonNumber, episodeNumber, path, fileSize)
+                    if (result != null) {
+                        Log.d(TAG, "Successfully scraped TV show: ${result.title} with poster: ${result.posterPath}")
+                    } else {
+                        Log.w(TAG, "Failed to scrape TV show: $seriesName")
+                    }
+                    result
+                }
+                else -> null
+            }
+
+            // 如果TMDB刮削失败，创建基本的MediaItem
+            scrapedItem ?: createBasicMediaItem(name, path, fileSize, mediaType)
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error scraping media file: $path", e)
+            // 发生错误时创建基本的MediaItem
+            createBasicMediaItem(name, path, fileSize, com.tvplayer.webdav.data.model.MediaType.MOVIE)
         }
     }
 
@@ -179,5 +204,91 @@ class MediaScanner @Inject constructor(
     private fun isVideoFile(fileName: String): Boolean {
         val extension = fileName.substringAfterLast('.', "").lowercase()
         return extension in VIDEO_EXTENSIONS
+    }
+
+    /**
+     * 解析季集信息
+     */
+    private fun parseSeasonEpisode(fileName: String): Pair<Int?, Int?> {
+        for (pattern in TV_SEASON_EPISODE_PATTERNS) {
+            val matcher = pattern.matcher(fileName)
+            if (matcher.find()) {
+                val season = matcher.group(1)?.toIntOrNull()
+                val episode = matcher.group(2)?.toIntOrNull()
+                return Pair(season, episode)
+            }
+        }
+        return Pair(null, null)
+    }
+
+    /**
+     * 提取电视剧系列名称
+     */
+    private fun extractSeriesName(fileName: String, filePath: String): String {
+        // 尝试从路径中提取系列名称（通常是父目录名）
+        val pathParts = filePath.split("/")
+        if (pathParts.size >= 2) {
+            val parentDir = pathParts[pathParts.size - 2]
+            // 如果父目录包含季信息，再往上一级
+            if (TV_DIRECTORY_KEYWORDS.any { parentDir.lowercase().contains(it) }) {
+                if (pathParts.size >= 3) {
+                    return cleanSeriesName(pathParts[pathParts.size - 3])
+                }
+            } else {
+                return cleanSeriesName(parentDir)
+            }
+        }
+
+        // 如果无法从路径提取，从文件名提取
+        return cleanSeriesName(fileName.substringBeforeLast('.'))
+    }
+
+    /**
+     * 清理系列名称
+     */
+    private fun cleanSeriesName(name: String): String {
+        return name
+            .replace(Regex("[\\[\\(（【].*?[\\]\\)）】]"), " ") // 移除括号内容
+            .replace(Regex("S\\d+E\\d+", RegexOption.IGNORE_CASE), " ") // 移除季集信息
+            .replace(Regex("[._-]+"), " ") // 替换分隔符为空格
+            .replace(Regex("\\s+"), " ") // 合并多个空格
+            .trim()
+    }
+
+    /**
+     * 创建基本的MediaItem（当TMDB刮削失败时使用）
+     */
+    private fun createBasicMediaItem(
+        fileName: String,
+        filePath: String,
+        fileSize: Long,
+        mediaType: com.tvplayer.webdav.data.model.MediaType
+    ): MediaItem {
+        val (seasonNumber, episodeNumber) = if (mediaType == com.tvplayer.webdav.data.model.MediaType.TV_EPISODE) {
+            parseSeasonEpisode(fileName)
+        } else {
+            Pair(null, null)
+        }
+
+        return MediaItem(
+            id = filePath.hashCode().toString(),
+            title = fileName.substringBeforeLast('.'),
+            originalTitle = null,
+            overview = null,
+            posterPath = null,
+            backdropPath = null,
+            releaseDate = null,
+            rating = 0f,
+            duration = 0L,
+            mediaType = mediaType,
+            filePath = filePath,
+            fileSize = fileSize,
+            lastModified = null,
+            seasonNumber = seasonNumber,
+            episodeNumber = episodeNumber,
+            seriesTitle = if (mediaType == com.tvplayer.webdav.data.model.MediaType.TV_EPISODE) {
+                extractSeriesName(fileName, filePath)
+            } else null
+        )
     }
 }

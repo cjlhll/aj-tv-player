@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
+    android:foreground="?android:attr/selectableItemBackground"
+    app:cardBackgroundColor="@color/card_background"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <!-- 匹配度指示器 -->
+        <View
+            android:id="@+id/indicator_match"
+            android:layout_width="4dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="12dp"
+            android:background="@color/accent_color"
+            android:visibility="gone" />
+
+        <!-- 主要内容 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- 第一行：标题和语言 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/text_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="字幕标题"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <TextView
+                    android:id="@+id/text_language"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/role_badge_background"
+                    android:text="简体中文"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="4dp"
+                    android:layout_marginStart="8dp" />
+
+            </LinearLayout>
+
+            <!-- 第二行：详细信息 -->
+            <TextView
+                android:id="@+id/text_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="OpenSubtitles | 下载: 1234 | 大小: 45.6KB"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:layout_marginTop="4dp"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+        </LinearLayout>
+
+        <!-- 右侧信息 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="end"
+            android:layout_marginStart="12dp">
+
+            <!-- 评分 -->
+            <TextView
+                android:id="@+id/text_rating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rating_badge_background"
+                android:text="8.5"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:drawableStart="@drawable/ic_star"
+                android:drawablePadding="2dp"
+                android:drawableTint="@color/star_color" />
+
+            <!-- 状态标签 -->
+            <TextView
+                android:id="@+id/text_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/status_background"
+                android:text="已下载"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:layout_marginTop="4dp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
