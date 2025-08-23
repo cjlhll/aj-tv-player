@@ -41,7 +41,12 @@
             android:layout_marginBottom="16dp"
             android:gravity="start|center_vertical"
             android:paddingStart="24dp"
-            android:paddingEnd="24dp" />
+            android:paddingEnd="24dp"
+            android:focusable="true"
+            android:clickable="true"
+            android:background="@drawable/settings_button_focus"
+            android:elevation="4dp"
+            android:stateListAnimator="@null" />
 
         <Button
             android:id="@+id/btn_media_scan"
@@ -54,7 +59,12 @@
             android:layout_marginBottom="16dp"
             android:gravity="start|center_vertical"
             android:paddingStart="24dp"
-            android:paddingEnd="24dp" />
+            android:paddingEnd="24dp"
+            android:focusable="true"
+            android:clickable="true"
+            android:background="@drawable/settings_button_focus"
+            android:elevation="4dp"
+            android:stateListAnimator="@null" />
 
         <!-- 应用设置 -->
         <TextView
@@ -78,7 +88,12 @@
             android:layout_marginBottom="16dp"
             android:gravity="start|center_vertical"
             android:paddingStart="24dp"
-            android:paddingEnd="24dp" />
+            android:paddingEnd="24dp"
+            android:focusable="true"
+            android:clickable="true"
+            android:background="@drawable/settings_button_focus"
+            android:elevation="4dp"
+            android:stateListAnimator="@null" />
 
         <Button
             android:id="@+id/btn_playback_settings"
@@ -91,7 +106,12 @@
             android:layout_marginBottom="16dp"
             android:gravity="start|center_vertical"
             android:paddingStart="24dp"
-            android:paddingEnd="24dp" />
+            android:paddingEnd="24dp"
+            android:focusable="true"
+            android:clickable="true"
+            android:background="@drawable/settings_button_focus"
+            android:elevation="4dp"
+            android:stateListAnimator="@null" />
 
         <!-- 关于 -->
         <TextView
@@ -115,7 +135,12 @@
             android:layout_marginBottom="16dp"
             android:gravity="start|center_vertical"
             android:paddingStart="24dp"
-            android:paddingEnd="24dp" />
+            android:paddingEnd="24dp"
+            android:focusable="true"
+            android:clickable="true"
+            android:background="@drawable/settings_button_focus"
+            android:elevation="4dp"
+            android:stateListAnimator="@null" />
 
         <!-- 版本信息 -->
         <TextView

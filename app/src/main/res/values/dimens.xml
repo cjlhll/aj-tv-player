@@ -18,6 +18,12 @@
     <dimen name="card_height">120dp</dimen>
     <dimen name="card_margin">8dp</dimen>
     
+    <!-- Optimized poster dimensions for 6-column grid -->
+    <dimen name="poster_width_6col">120dp</dimen>
+    <dimen name="poster_height_6col">180dp</dimen>
+    <dimen name="poster_margin_6col">6dp</dimen>
+    <dimen name="poster_spacing_6col">6dp</dimen>
+    
     <!-- Text sizes -->
     <dimen name="text_size_large">24sp</dimen>
     <dimen name="text_size_medium">18sp</dimen>

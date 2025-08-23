@@ -12,6 +12,8 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.tvplayer.webdav.R
 import com.tvplayer.webdav.data.model.TVSeriesSummary
+import com.tvplayer.webdav.ui.home.PosterFocusAnimator
+import com.tvplayer.webdav.ui.home.FocusHighlightHelper
 
 /**
  * 电视剧系列适配器
@@ -64,13 +66,8 @@ class TVSeriesAdapter(
                 layoutProgress.visibility = View.GONE
             }
 
-            // 显示评分
-            if (series.rating > 0) {
-                tvRating.text = String.format("%.1f", series.rating)
-                tvRating.visibility = View.VISIBLE
-            } else {
-                tvRating.visibility = View.GONE
-            }
+            // 隐藏评分标签
+            tvRating.visibility = View.GONE
 
             // 加载海报图片
             val posterUrl = series.posterPath
@@ -88,14 +85,18 @@ class TVSeriesAdapter(
                 ivPoster.setImageResource(R.drawable.ic_tv)
             }
 
-            // 设置CardView的点击和焦点事件
+            // 设置焦点效果（使用与电影海报相同的焦点动画）
             val cardView = itemView.findViewById<CardView>(R.id.card_view)
             if (cardView != null) {
+                // 设置点击事件在CardView上
                 cardView.setOnClickListener {
                     onSeriesClick(series)
                 }
 
-                cardView.setOnFocusChangeListener { _, hasFocus ->
+                // 使用PosterFocusAnimator设置焦点动画，与MediaPosterAdapter保持一致
+                PosterFocusAnimator.setupPosterFocusAnimation(
+                    cardView, cardView, null, tvRating
+                ) { hasFocus ->
                     if (hasFocus) {
                         onItemFocused?.invoke(series)
                     }
@@ -105,7 +106,10 @@ class TVSeriesAdapter(
                 itemView.setOnClickListener {
                     onSeriesClick(series)
                 }
-
+                
+                // 使用FocusHighlightHelper作为备用焦点效果
+                FocusHighlightHelper.setupFocusHighlight(itemView)
+                
                 itemView.setOnFocusChangeListener { _, hasFocus ->
                     if (hasFocus) {
                         onItemFocused?.invoke(series)

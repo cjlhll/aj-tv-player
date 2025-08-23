@@ -31,6 +31,7 @@ class SettingsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         
         setupViews(view)
+        setupFocusAnimations(view)
     }
 
     private fun setupViews(view: View) {
@@ -56,6 +57,23 @@ class SettingsFragment : Fragment() {
         btnClearCache.setOnClickListener {
             // TODO: 清除缓存
         }
+    }
+
+    private fun setupFocusAnimations(view: View) {
+        // 为所有设置按钮设置焦点动画
+        val btnWebDAVSettings = view.findViewById<Button>(R.id.btn_webdav_settings)
+        val btnMediaScan = view.findViewById<Button>(R.id.btn_media_scan)
+        val btnClearCache = view.findViewById<Button>(R.id.btn_clear_cache)
+        val btnPlaybackSettings = view.findViewById<Button>(R.id.btn_playback_settings)
+        val btnAbout = view.findViewById<Button>(R.id.btn_about)
+
+        SettingsFocusAnimator.setupAllSettingsButtons(
+            btnWebDAVSettings,
+            btnMediaScan,
+            btnClearCache,
+            btnPlaybackSettings,
+            btnAbout
+        )
     }
 
     private fun navigateToWebDAVSettings() {
