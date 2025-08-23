@@ -118,22 +118,30 @@ class GSYExoSubTitlePlayer(private val context: Context) : AbstractMediaPlayer()
             
             // 如果有字幕，添加字幕配置
             subtitlePath?.let { subtitlePath ->
-                val subtitleUri = if (subtitlePath.startsWith("http")) {
+                val processedSubtitleUri = if (subtitlePath.startsWith("http")) {
                     Uri.parse(subtitlePath)
                 } else {
-                    Uri.fromFile(File(subtitlePath))
+                    // 对ASS文件进行特殊处理
+                    if (subtitlePath.endsWith(".ass", true) || subtitlePath.endsWith(".ssa", true)) {
+                        processAssSubtitle(subtitlePath)
+                    } else {
+                        Uri.fromFile(File(subtitlePath))
+                    }
                 }
-                
-                val subtitleConfig = MediaItem.SubtitleConfiguration.Builder(subtitleUri)
-                    .setMimeType(getMimeTypeFromPath(subtitlePath))
+
+                val mimeType = getMimeTypeFromPath(subtitlePath)
+                android.util.Log.i("GSYExoSubTitlePlayer", "字幕文件: $subtitlePath, MIME类型: $mimeType")
+
+                val subtitleConfig = MediaItem.SubtitleConfiguration.Builder(processedSubtitleUri)
+                    .setMimeType(mimeType)
                     .setLanguage("zh")
                     .setLabel("中文字幕")
                     .setSelectionFlags(androidx.media3.common.C.SELECTION_FLAG_DEFAULT)
                     .setRoleFlags(androidx.media3.common.C.ROLE_FLAG_SUBTITLE)
                     .build()
-                
+
                 mediaItemBuilder.setSubtitleConfigurations(listOf(subtitleConfig))
-                android.util.Log.i("GSYExoSubTitlePlayer", "添加字幕配置: $subtitleUri")
+                android.util.Log.i("GSYExoSubTitlePlayer", "添加字幕配置: $processedSubtitleUri")
             }
 
             val mediaItem = mediaItemBuilder.build()
@@ -147,10 +155,127 @@ class GSYExoSubTitlePlayer(private val context: Context) : AbstractMediaPlayer()
         }
     }
 
+    /**
+     * 处理ASS字幕文件，转换为SRT格式
+     */
+    private fun processAssSubtitle(assPath: String): Uri {
+        try {
+            val assFile = File(assPath)
+            if (!assFile.exists()) {
+                android.util.Log.e("GSYExoSubTitlePlayer", "ASS文件不存在: $assPath")
+                return Uri.fromFile(assFile)
+            }
+
+            // 创建转换后的SRT文件
+            val srtFile = File(assFile.parent, assFile.nameWithoutExtension + "_converted.srt")
+
+            android.util.Log.i("GSYExoSubTitlePlayer", "开始转换ASS字幕: $assPath -> ${srtFile.absolutePath}")
+
+            val assContent = assFile.readText(Charsets.UTF_8)
+            val srtContent = convertAssToSrt(assContent)
+
+            srtFile.writeText(srtContent, Charsets.UTF_8)
+            android.util.Log.i("GSYExoSubTitlePlayer", "ASS字幕转换完成，SRT文件大小: ${srtFile.length()} bytes")
+
+            return Uri.fromFile(srtFile)
+
+        } catch (e: Exception) {
+            android.util.Log.e("GSYExoSubTitlePlayer", "ASS字幕处理失败", e)
+            return Uri.fromFile(File(assPath))
+        }
+    }
+
+    /**
+     * 将ASS格式转换为SRT格式
+     */
+    private fun convertAssToSrt(assContent: String): String {
+        val srtBuilder = StringBuilder()
+        val lines = assContent.split("\n")
+        var subtitleIndex = 1
+
+        for (line in lines) {
+            if (line.startsWith("Dialogue:")) {
+                try {
+                    val parts = line.split(",", limit = 10)
+                    if (parts.size >= 10) {
+                        val startTime = convertAssTimeToSrt(parts[1].trim())
+                        val endTime = convertAssTimeToSrt(parts[2].trim())
+                        var text = parts[9]
+
+                        // 清理ASS格式化标签
+                        text = cleanAssFormatting(text)
+
+                        if (text.isNotBlank()) {
+                            srtBuilder.append("$subtitleIndex\n")
+                            srtBuilder.append("$startTime --> $endTime\n")
+                            srtBuilder.append("$text\n\n")
+                            subtitleIndex++
+                        }
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.w("GSYExoSubTitlePlayer", "转换ASS行失败: $line", e)
+                }
+            }
+        }
+
+        val result = srtBuilder.toString()
+        android.util.Log.i("GSYExoSubTitlePlayer", "ASS转SRT完成，生成 ${subtitleIndex-1} 条字幕")
+        return result
+    }
+
+    /**
+     * 转换ASS时间格式为SRT时间格式
+     */
+    private fun convertAssTimeToSrt(assTime: String): String {
+        try {
+            // ASS格式: 0:00:20.00
+            // SRT格式: 00:00:20,000
+            val parts = assTime.split(":")
+            val hours = parts[0].padStart(2, '0')
+            val minutes = parts[1].padStart(2, '0')
+            val secondsParts = parts[2].split(".")
+            val seconds = secondsParts[0].padStart(2, '0')
+            val centiseconds = if (secondsParts.size > 1) {
+                secondsParts[1].padEnd(2, '0').take(2)
+            } else "00"
+            val milliseconds = (centiseconds.toInt() * 10).toString().padStart(3, '0')
+
+            return "$hours:$minutes:$seconds,$milliseconds"
+        } catch (e: Exception) {
+            android.util.Log.w("GSYExoSubTitlePlayer", "ASS时间转换失败: $assTime", e)
+            return "00:00:00,000"
+        }
+    }
+
+    /**
+     * 清理ASS格式化标签
+     */
+    private fun cleanAssFormatting(text: String): String {
+        var cleanText = text
+
+        // 移除常见的ASS格式化标签
+        cleanText = cleanText
+            .replace("\\N", "\n")                    // 换行符
+            .replace("\\n", "\n")                    // 小写换行符
+            .replace("\\h", " ")                     // 硬空格
+            .replace(Regex("\\{[^}]*\\}"), "")       // 移除所有 {} 包围的标签
+            .replace(Regex("\\\\[a-zA-Z]+\\([^)]*\\)"), "") // 移除函数式标签如 \move()
+            .replace(Regex("\\\\[a-zA-Z]+[0-9]*"), "") // 移除简单标签如 \b1, \i1
+            .replace(Regex("\\\\[0-9]+"), "")        // 移除数字标签
+            .replace("\\\\", "\\")                   // 处理转义的反斜杠
+            .trim()
+
+        return cleanText
+    }
+
     private fun getMimeTypeFromPath(path: String): String {
         return when {
             path.endsWith(".srt", true) -> MimeTypes.APPLICATION_SUBRIP
-            path.endsWith(".ass", true) || path.endsWith(".ssa", true) -> MimeTypes.APPLICATION_SS
+            path.endsWith(".ass", true) || path.endsWith(".ssa", true) -> {
+                // ASS格式转换为SRT后使用SRT的MIME类型
+                android.util.Log.i("GSYExoSubTitlePlayer", "ASS字幕将转换为SRT格式")
+                MimeTypes.APPLICATION_SUBRIP
+            }
             path.endsWith(".vtt", true) -> MimeTypes.TEXT_VTT
             else -> MimeTypes.APPLICATION_SUBRIP
         }
