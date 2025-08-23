@@ -11,12 +11,12 @@ import androidx.appcompat.app.AppCompatActivity
 import com.shuyu.gsyvideoplayer.GSYVideoManager
 import com.shuyu.gsyvideoplayer.player.PlayerFactory
 import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer
+import com.tvplayer.webdav.ui.player.subtitle.SimpleSubtitleVideoPlayer
 import tv.danmaku.ijk.media.exo2.Exo2PlayerManager
 import com.tvplayer.webdav.R
 import com.tvplayer.webdav.data.storage.PlaybackStateManager
 import com.tvplayer.webdav.data.model.PlaybackState
 import com.tvplayer.webdav.ui.player.subtitle.SubtitleAutoLoader
-import com.tvplayer.webdav.ui.player.subtitle.SubtitleExoMount
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
@@ -32,7 +32,7 @@ class PlayerActivity : AppCompatActivity() {
     @Inject
     lateinit var playbackStateManager: PlaybackStateManager
     
-    private lateinit var videoPlayer: StandardGSYVideoPlayer
+    private lateinit var videoPlayer: SimpleSubtitleVideoPlayer
     private var mediaId: String? = null
     private var mediaTitle: String? = null
     private var startPosition: Long = 0L // 秒为单位
@@ -40,8 +40,9 @@ class PlayerActivity : AppCompatActivity() {
     // 字幕自动加载
     private val uiScope = MainScope()
     private var subtitleLoader: SubtitleAutoLoader? = null
-    private var subtitleMounted = false
     private var subtitleEnabled = true // 字幕开关
+    private var currentSubtitlePath: String? = null // 当前字幕文件路径
+    private var currentVideoUrl: String? = null // 当前视频URL
 
     // 进度追踪相关变量
     private val progressHandler = Handler(Looper.getMainLooper())
@@ -60,7 +61,7 @@ class PlayerActivity : AppCompatActivity() {
         PlayerFactory.setPlayManager(Exo2PlayerManager::class.java)
         Log.d("PlayerActivity", "Switched to ExoPlayer kernel for better WebDAV support")
 
-        videoPlayer = findViewById<StandardGSYVideoPlayer>(R.id.video_player)
+        videoPlayer = findViewById<SimpleSubtitleVideoPlayer>(R.id.video_player)
 
         val title = intent.getStringExtra(EXTRA_TITLE) ?: ""
         val uriString = intent.getStringExtra(EXTRA_URI)
@@ -86,12 +87,15 @@ class PlayerActivity : AppCompatActivity() {
         Log.d("PlayerActivity", "WebDAV auth: ${webdavUsername != null}")
         Log.d("PlayerActivity", "Start position: ${startPosition}s")
         Log.d("PlayerActivity", "Media ID: $mediaId")
-        
+
         // 直接使用传入的URI，因为已经包含了身份验证信息
         Log.d("PlayerActivity", "Final URI for playback: $uri")
 
         // Setup GSYVideoPlayer with the URI - 禁用缓存以支持WebDAV
         val dataSource = uri.toString()
+
+        // 保存当前视频URL
+        currentVideoUrl = dataSource
         videoPlayer.setUp(dataSource, false, title) // 第二个参数设为false禁用缓存
 
         // 为WebDAV播放配置特殊选项
@@ -105,12 +109,7 @@ class PlayerActivity : AppCompatActivity() {
             onBackPressedDispatcher.onBackPressed()
         }
 
-        // 初始化字幕挂载拦截器
-        SubtitleExoMount.ensureInit()
-        // 将播放时的HTTP头部（含认证）注册给字幕挂载器，避免重建MediaSource时丢失401认证
-        if (headers.isNotEmpty()) {
-            SubtitleExoMount.registerHeaders(dataSource, headers)
-        }
+
         // 启动自动字幕搜索与下载
         if (subtitleEnabled) {
             startAutoSubtitle(dataSource, title)
@@ -166,7 +165,6 @@ class PlayerActivity : AppCompatActivity() {
      */
     private fun startAutoSubtitle(dataSource: String, title: String) {
         try {
-            if (subtitleMounted) return
             // 使用提供的 ASSRT Token
             val token = "0k4uATEWYFeuaEleVJvzTFXlBBCTvP1A"
             subtitleLoader = SubtitleAutoLoader(this, token, uiScope)
@@ -182,31 +180,61 @@ class PlayerActivity : AppCompatActivity() {
                     return@start
                 }
                 try {
-                    // 注册字幕
-                    SubtitleExoMount.register(dataSource, res.file, res.mimeType)
-                    subtitleMounted = true
-                    val keepPosMs = videoPlayer.currentPositionWhenPlaying
-                    val isPlaying = videoPlayer.isInPlayingState
-                    Log.i("PlayerActivity", "字幕准备就绪: ${res.displayName}, 重新启动播放器挂载字幕. pos=${keepPosMs}ms")
+                    Log.i("PlayerActivity", "字幕下载成功: ${res.displayName}")
+                    Log.i("PlayerActivity", "字幕文件路径: ${res.file.absolutePath}")
+                    Log.i("PlayerActivity", "字幕文件大小: ${res.file.length()} bytes")
 
-                    showSubtitleStatus("字幕加载成功: ${res.displayName}")
-                    
-                    // 重新setUp并恢复播放位置
+                    // 验证字幕文件
+                    if (!res.file.exists()) {
+                        Log.e("PlayerActivity", "字幕文件不存在: ${res.file.absolutePath}")
+                        showSubtitleStatus("字幕文件不存在")
+                        return@start
+                    }
+
+                    if (res.file.length() == 0L) {
+                        Log.e("PlayerActivity", "字幕文件为空: ${res.file.absolutePath}")
+                        showSubtitleStatus("字幕文件为空")
+                        return@start
+                    }
+
+                    // 按照官方示例的正确顺序设置字幕
+                    val keepPosMs = videoPlayer.currentPositionWhenPlaying
+                    Log.i("PlayerActivity", "字幕准备就绪: ${res.displayName}, 按官方方式设置字幕. pos=${keepPosMs}ms")
+
+                    showSubtitleStatus("正在应用字幕: ${res.displayName}")
+
+                    // 先停止当前播放
+                    videoPlayer.onVideoPause()
+
+                    // 按照官方示例：先 setUp，再 setSubTitle
                     videoPlayer.setUp(dataSource, false, title)
+
+                    // 关键：在 setUp 之后调用 setSubTitle（官方方式）
+                    videoPlayer.setSubTitle(res.file.absolutePath)
+                    Log.i("PlayerActivity", "官方 setSubTitle 调用完成: ${res.file.absolutePath}")
+
+                    // 开始播放
                     videoPlayer.startPlayLogic()
+
+                    // 恢复播放位置
                     if (keepPosMs > 0) {
                         Handler(Looper.getMainLooper()).postDelayed({
                             videoPlayer.seekTo(keepPosMs)
-                        }, 1200)
+                            Log.i("PlayerActivity", "恢复播放位置: ${keepPosMs}ms")
+                        }, 1500)
                     }
-                    
-                    // 3秒后隐藏字幕状态提示
+
+                    // 显示成功消息
                     Handler(Looper.getMainLooper()).postDelayed({
-                        hideSubtitleStatus()
-                    }, 3000)
+                        showSubtitleStatus("字幕已挂载: ${res.displayName}")
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            hideSubtitleStatus()
+                        }, 3000)
+                    }, 2000)
+
                 } catch (e: Exception) {
-                    Log.e("PlayerActivity", "字幕挂载失败", e)
-                    showSubtitleStatus("字幕挂载失败")
+                    Log.e("PlayerActivity", "字幕处理失败", e)
+                    showSubtitleStatus("字幕处理失败")
                 }
             }
         } catch (e: Exception) {
@@ -214,6 +242,8 @@ class PlayerActivity : AppCompatActivity() {
             showSubtitleStatus("字幕加载出错")
         }
     }
+
+
 
     /**
      * 显示字幕状态提示

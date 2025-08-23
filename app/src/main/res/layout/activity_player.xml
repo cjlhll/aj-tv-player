@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:background="@color/black">
 
-    <com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer
+    <com.tvplayer.webdav.ui.player.subtitle.SimpleSubtitleVideoPlayer
         android:id="@+id/video_player"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
