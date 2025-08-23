@@ -11,12 +11,15 @@ import androidx.appcompat.app.AppCompatActivity
 import com.shuyu.gsyvideoplayer.GSYVideoManager
 import com.shuyu.gsyvideoplayer.player.PlayerFactory
 import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer
-import com.shuyu.gsyvideoplayer.player.IjkPlayerManager
 import tv.danmaku.ijk.media.exo2.Exo2PlayerManager
 import com.tvplayer.webdav.R
 import com.tvplayer.webdav.data.storage.PlaybackStateManager
 import com.tvplayer.webdav.data.model.PlaybackState
+import com.tvplayer.webdav.ui.player.subtitle.SubtitleAutoLoader
+import com.tvplayer.webdav.ui.player.subtitle.SubtitleExoMount
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import javax.inject.Inject
 
 /**
@@ -33,7 +36,13 @@ class PlayerActivity : AppCompatActivity() {
     private var mediaId: String? = null
     private var mediaTitle: String? = null
     private var startPosition: Long = 0L // 秒为单位
-    
+
+    // 字幕自动加载
+    private val uiScope = MainScope()
+    private var subtitleLoader: SubtitleAutoLoader? = null
+    private var subtitleMounted = false
+    private var subtitleEnabled = true // 字幕开关
+
     // 进度追踪相关变量
     private val progressHandler = Handler(Looper.getMainLooper())
     private val progressUpdateRunnable = object : Runnable {
@@ -82,21 +91,33 @@ class PlayerActivity : AppCompatActivity() {
         Log.d("PlayerActivity", "Final URI for playback: $uri")
 
         // Setup GSYVideoPlayer with the URI - 禁用缓存以支持WebDAV
-        videoPlayer.setUp(uri.toString(), false, title) // 第二个参数设为false禁用缓存
-        
+        val dataSource = uri.toString()
+        videoPlayer.setUp(dataSource, false, title) // 第二个参数设为false禁用缓存
+
         // 为WebDAV播放配置特殊选项
-        configureForWebDAV(uri, webdavUsername, webdavPassword)
-        
+        val headers = configureForWebDAV(uri, webdavUsername, webdavPassword)
+
         // 设置播放监听器
         setupPlaybackListeners()
-        
+
         // Optional: handle back button in player UI to finish activity.
         videoPlayer.backButton?.setOnClickListener {
             onBackPressedDispatcher.onBackPressed()
         }
 
+        // 初始化字幕挂载拦截器
+        SubtitleExoMount.ensureInit()
+        // 将播放时的HTTP头部（含认证）注册给字幕挂载器，避免重建MediaSource时丢失401认证
+        if (headers.isNotEmpty()) {
+            SubtitleExoMount.registerHeaders(dataSource, headers)
+        }
+        // 启动自动字幕搜索与下载
+        if (subtitleEnabled) {
+            startAutoSubtitle(dataSource, title)
+        }
+
         videoPlayer.startPlayLogic()
-        
+
         // 如果有起始位置，在播放器准备好后跳转到指定位置
         if (startPosition > 0) {
             // 延迟跳转，等待播放器初始化完成
@@ -135,18 +156,93 @@ class PlayerActivity : AppCompatActivity() {
         // 停止进度追踪并保存当前进度
         stopProgressTracking()
         saveCurrentProgress()
+        subtitleLoader?.cancel()
+        uiScope.cancel()
         GSYVideoManager.releaseAllVideos()
     }
-    
+
+    /**
+     * 开始自动字幕流程
+     */
+    private fun startAutoSubtitle(dataSource: String, title: String) {
+        try {
+            if (subtitleMounted) return
+            // 使用提供的 ASSRT Token
+            val token = "0k4uATEWYFeuaEleVJvzTFXlBBCTvP1A"
+            subtitleLoader = SubtitleAutoLoader(this, token, uiScope)
+            val uri = Uri.parse(dataSource)
+            
+            Log.i("PlayerActivity", "开始搜索字幕: $title")
+            showSubtitleStatus("正在搜索字幕...")
+            
+            subtitleLoader?.start(uri, title) { res ->
+                if (res == null) {
+                    Log.i("PlayerActivity", "未找到字幕或加载失败")
+                    showSubtitleStatus("未找到匹配的字幕")
+                    return@start
+                }
+                try {
+                    // 注册字幕
+                    SubtitleExoMount.register(dataSource, res.file, res.mimeType)
+                    subtitleMounted = true
+                    val keepPosMs = videoPlayer.currentPositionWhenPlaying
+                    val isPlaying = videoPlayer.isInPlayingState
+                    Log.i("PlayerActivity", "字幕准备就绪: ${res.displayName}, 重新启动播放器挂载字幕. pos=${keepPosMs}ms")
+
+                    showSubtitleStatus("字幕加载成功: ${res.displayName}")
+                    
+                    // 重新setUp并恢复播放位置
+                    videoPlayer.setUp(dataSource, false, title)
+                    videoPlayer.startPlayLogic()
+                    if (keepPosMs > 0) {
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            videoPlayer.seekTo(keepPosMs)
+                        }, 1200)
+                    }
+                    
+                    // 3秒后隐藏字幕状态提示
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        hideSubtitleStatus()
+                    }, 3000)
+                } catch (e: Exception) {
+                    Log.e("PlayerActivity", "字幕挂载失败", e)
+                    showSubtitleStatus("字幕挂载失败")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("PlayerActivity", "自动字幕加载出错", e)
+            showSubtitleStatus("字幕加载出错")
+        }
+    }
+
+    /**
+     * 显示字幕状态提示
+     */
+    private fun showSubtitleStatus(message: String) {
+        runOnUiThread {
+            // 这里可以显示Toast或者自定义的状态提示UI
+            android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show()
+            Log.i("PlayerActivity", "字幕状态: $message")
+        }
+    }
+
+    /**
+     * 隐藏字幕状态提示
+     */
+    private fun hideSubtitleStatus() {
+        // 如果有自定义的状态提示UI，在这里隐藏
+        Log.d("PlayerActivity", "隐藏字幕状态提示")
+    }
+
     /**
      * 为WebDAV播放配置特殊选项
      */
-    private fun configureForWebDAV(uri: Uri, username: String?, password: String?) {
-        try {
+    private fun configureForWebDAV(uri: Uri, username: String?, password: String?): Map<String, String> {
+        return try {
             // 检查是否为WebDAV URL
             if (isWebDAVUrl(uri)) {
                 Log.d("PlayerActivity", "Configuring for WebDAV playback")
-                
+
                 // 禁用全局缓存服务器
                 try {
                     val proxyCacheManagerClass = Class.forName("com.danikula.videocache.ProxyCacheManager")
@@ -156,7 +252,7 @@ class PlayerActivity : AppCompatActivity() {
                 } catch (e: Exception) {
                     Log.w("PlayerActivity", "Could not disable ProxyCache: ${e.message}")
                 }
-                
+
                 // 设置HTTP头部，包括认证信息
                 val headers = hashMapOf<String, String>(
                     "Accept-Ranges" to "bytes",
@@ -164,7 +260,7 @@ class PlayerActivity : AppCompatActivity() {
                     "User-Agent" to "AndroidTVPlayer/1.0",
                     "Accept" to "*/*"
                 )
-                
+
                 // 如果有认证信息，添加Authorization头部
                 if (!username.isNullOrEmpty() && !password.isNullOrEmpty()) {
                     val credentials = android.util.Base64.encodeToString(
@@ -174,16 +270,20 @@ class PlayerActivity : AppCompatActivity() {
                     headers["Authorization"] = "Basic $credentials"
                     Log.d("PlayerActivity", "Added Basic Authentication header")
                 }
-                
+
                 videoPlayer.setMapHeadData(headers)
-                
+
                 Log.d("PlayerActivity", "WebDAV headers configured: ${headers.keys}")
+                headers
+            } else {
+                emptyMap()
             }
         } catch (e: Exception) {
             Log.e("PlayerActivity", "Error configuring WebDAV: ${e.message}", e)
+            emptyMap()
         }
     }
-    
+
     /**
      * 检查是否为WebDAV URL
      */

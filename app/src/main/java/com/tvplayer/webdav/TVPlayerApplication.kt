@@ -12,18 +12,19 @@ import dagger.hilt.android.HiltAndroidApp
  */
 @HiltAndroidApp
 class TVPlayerApplication : Application() {
-    
+
     override fun onCreate() {
         super.onCreate()
+        AppGlobals.init(this)
         // Initialize any global configurations here
-        
+
         // 全局切换到ExoPlayer内核以获得更好的WebDAV支持
         initializeVideoPlayer()
-        
+
         // 禁用GSYVideoPlayer的全局缓存以支持WebDAV播放
         disableGSYVideoPlayerCache()
     }
-    
+
     /**
      * 初始化视频播放器配置
      */
@@ -36,7 +37,7 @@ class TVPlayerApplication : Application() {
             Log.e("TVPlayerApplication", "Failed to initialize ExoPlayer kernel: ${e.message}")
         }
     }
-    
+
     /**
      * 禁用GSYVideoPlayer的缓存机制，解决WebDAV播放问题
      */
@@ -46,7 +47,7 @@ class TVPlayerApplication : Application() {
             val proxyCacheManagerClass = Class.forName("com.danikula.videocache.ProxyCacheManager")
             val isInstanceMethod = proxyCacheManagerClass.getMethod("isInstance")
             val isInstance = isInstanceMethod.invoke(null) as Boolean
-            
+
             if (isInstance) {
                 val shutdownMethod = proxyCacheManagerClass.getMethod("shutdown")
                 shutdownMethod.invoke(null)
@@ -54,7 +55,7 @@ class TVPlayerApplication : Application() {
             }
         } catch (e: Exception) {
             Log.w("TVPlayerApplication", "Could not disable ProxyCache, using alternative method: ${e.message}")
-            
+
             // 替代方法：设置空的缓存目录
             try {
                 System.setProperty("http.proxyHost", "")
