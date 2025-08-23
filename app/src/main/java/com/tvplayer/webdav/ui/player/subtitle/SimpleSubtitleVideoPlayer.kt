@@ -40,7 +40,7 @@ class SimpleSubtitleVideoPlayer : NormalGSYVideoPlayer, Player.Listener {
         // 按照官方方式初始化字幕视图
         mSubtitleView = findViewById(R.id.sub_title_view)
 
-        // 设置字幕样式 - 使用白色字体，更清晰
+        // 设置字幕样式 - 使用大字体，确保清晰可见
         mSubtitleView?.setStyle(
             CaptionStyleCompat(
                 Color.WHITE, // 白色字体
@@ -51,7 +51,15 @@ class SimpleSubtitleVideoPlayer : NormalGSYVideoPlayer, Player.Listener {
                 null
             )
         )
-        mSubtitleView?.setFixedTextSize(TypedValue.COMPLEX_UNIT_DIP, 18f) // 18dp字体大小
+        // 设置更大的字体大小，确保在各种屏幕上都清晰可见
+        val textSize = 28f // 增大到28dp
+        mSubtitleView?.setFixedTextSize(TypedValue.COMPLEX_UNIT_DIP, textSize)
+
+        // 设置字幕视图的其他属性
+        mSubtitleView?.setApplyEmbeddedStyles(false) // 禁用嵌入样式，使用我们的设置
+        mSubtitleView?.setApplyEmbeddedFontSizes(false) // 禁用嵌入字体大小，使用我们的设置
+
+        Log.i("SimpleSubtitleVideoPlayer", "字幕样式设置完成 - 字体大小: ${textSize}dp")
 
         Log.i("SimpleSubtitleVideoPlayer", "官方字幕视图初始化完成")
     }
@@ -155,6 +163,43 @@ class SimpleSubtitleVideoPlayer : NormalGSYVideoPlayer, Player.Listener {
     fun clearSubtitle() {
         mSubTitle = null
         Log.i("SimpleSubtitleVideoPlayer", "清除字幕")
+    }
+
+    /**
+     * 设置字幕字体大小
+     */
+    fun setSubtitleTextSize(textSizeDp: Float) {
+        mSubtitleView?.setFixedTextSize(TypedValue.COMPLEX_UNIT_DIP, textSizeDp)
+        Log.i("SimpleSubtitleVideoPlayer", "字幕字体大小设置为: ${textSizeDp}dp")
+    }
+
+    /**
+     * 设置字幕样式
+     */
+    fun setSubtitleStyle(
+        textColor: Int = Color.WHITE,
+        backgroundColor: Int = Color.TRANSPARENT,
+        windowColor: Int = Color.TRANSPARENT,
+        edgeType: Int = CaptionStyleCompat.EDGE_TYPE_OUTLINE,
+        edgeColor: Int = Color.BLACK,
+        textSize: Float = 28f
+    ) {
+        mSubtitleView?.let { subtitleView ->
+            subtitleView.setStyle(
+                CaptionStyleCompat(
+                    textColor,
+                    backgroundColor,
+                    windowColor,
+                    edgeType,
+                    edgeColor,
+                    null
+                )
+            )
+            subtitleView.setFixedTextSize(TypedValue.COMPLEX_UNIT_DIP, textSize)
+            subtitleView.setApplyEmbeddedStyles(false)
+            subtitleView.setApplyEmbeddedFontSizes(false)
+        }
+        Log.i("SimpleSubtitleVideoPlayer", "字幕样式更新完成 - 字体大小: ${textSize}dp")
     }
 
     /**********以下重载 GSYVideoPlayer 的管理器相关实现***********/
