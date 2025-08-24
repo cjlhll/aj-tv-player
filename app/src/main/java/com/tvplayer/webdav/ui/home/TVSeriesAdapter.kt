@@ -10,10 +10,11 @@ import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
 import com.tvplayer.webdav.R
 import com.tvplayer.webdav.data.model.TVSeriesSummary
-import com.tvplayer.webdav.ui.home.PosterFocusAnimator
-import com.tvplayer.webdav.ui.home.FocusHighlightHelper
 
 /**
  * 电视剧系列适配器
@@ -53,8 +54,13 @@ class TVSeriesAdapter(
             tvTitle.text = series.seriesTitle
             
             // 显示季数和集数信息
-            tvSubtitle.text = series.getSubtitle()
-            tvSubtitle.visibility = View.VISIBLE
+            val subtitle = series.getSubtitle()
+            if (subtitle != null) {
+                tvSubtitle.text = subtitle
+                tvSubtitle.visibility = View.VISIBLE
+            } else {
+                tvSubtitle.visibility = View.GONE
+            }
 
             // 显示观看进度
             if (series.hasWatchedProgress()) {
@@ -66,54 +72,61 @@ class TVSeriesAdapter(
                 layoutProgress.visibility = View.GONE
             }
 
-            // 隐藏评分标签
+            // 显示评分（如果有的话）
+            // 这里可以根据实际需求显示评分，暂时隐藏
             tvRating.visibility = View.GONE
 
-            // 加载海报图片
+            // 加载海报图片（与MediaPosterAdapter保持完全一致的处理方式）
+            val cornerRadius = (4f * itemView.resources.displayMetrics.density).toInt() // 4dp转换为像素
+            
+            val requestOptions = com.bumptech.glide.request.RequestOptions()
+                .centerCrop() // 保持centerCrop但优化参数
+                .dontAnimate() // 禁用动画提高性能
+                .transform(com.bumptech.glide.load.resource.bitmap.RoundedCorners(cornerRadius))
+                .placeholder(R.drawable.ic_tv)
+                .error(R.drawable.ic_tv) // 添加错误占位符
+            
             val posterUrl = series.posterPath
             if (!posterUrl.isNullOrEmpty()) {
                 try {
                     com.bumptech.glide.Glide.with(itemView.context)
                         .load(posterUrl)
-                        .centerCrop()
-                        .placeholder(R.drawable.ic_tv)
+                        .apply(requestOptions)
                         .into(ivPoster)
                 } catch (_: Exception) {
-                    ivPoster.setImageResource(R.drawable.ic_tv)
+                    // 加载失败时也要应用圆角效果
+                    com.bumptech.glide.Glide.with(itemView.context)
+                        .load(R.drawable.ic_tv)
+                        .apply(requestOptions)
+                        .into(ivPoster)
                 }
             } else {
-                ivPoster.setImageResource(R.drawable.ic_tv)
+                // 占位符也要应用圆角效果
+                com.bumptech.glide.Glide.with(itemView.context)
+                    .load(R.drawable.ic_tv)
+                    .apply(requestOptions)
+                    .into(ivPoster)
             }
 
-            // 设置焦点效果（使用与电影海报相同的焦点动画）
+            // 设置焦点效果（与MediaPosterAdapter完全一致）
             val cardView = itemView.findViewById<CardView>(R.id.card_view)
-            if (cardView != null) {
-                // 设置点击事件在CardView上
-                cardView.setOnClickListener {
-                    onSeriesClick(series)
-                }
+            
+            // 设置点击事件在整个itemView上
+            itemView.setOnClickListener {
+                onSeriesClick(series)
+            }
+            
+            // 注释图片点击事件，统一使用itemView的点击事件
+            // ivPoster.setOnClickListener {
+            //     onSeriesClick(series)
+            // }
 
-                // 使用PosterFocusAnimator设置焦点动画，与MediaPosterAdapter保持一致
-                PosterFocusAnimator.setupPosterFocusAnimation(
-                    cardView, cardView, null, tvRating
-                ) { hasFocus ->
-                    if (hasFocus) {
-                        onItemFocused?.invoke(series)
-                    }
-                }
-            } else {
-                // 备用方案
-                itemView.setOnClickListener {
-                    onSeriesClick(series)
-                }
-                
-                // 使用FocusHighlightHelper作为备用焦点效果
-                FocusHighlightHelper.setupFocusHighlight(itemView)
-                
-                itemView.setOnFocusChangeListener { _, hasFocus ->
-                    if (hasFocus) {
-                        onItemFocused?.invoke(series)
-                    }
+            // 使用整个itemView作为焦点容器，这样放大动画能正确应用到整个item
+            PosterFocusAnimator.setupPosterFocusAnimation(
+                itemView, cardView, null, tvRating
+            ) { hasFocus ->
+                if (hasFocus) {
+                    onItemFocused?.invoke(series)
                 }
             }
         }

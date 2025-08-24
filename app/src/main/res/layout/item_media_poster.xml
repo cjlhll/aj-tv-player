@@ -5,8 +5,9 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:layout_margin="@dimen/poster_margin_6col"
-    android:focusable="false"
-    android:clickable="false">
+    android:focusable="true"
+    android:focusableInTouchMode="false"
+    android:clickable="true">
 
     <!-- 现代化海报容器 -->
     <androidx.cardview.widget.CardView
@@ -17,9 +18,8 @@
         app:cardCornerRadius="8dp"
         app:cardElevation="6dp"
         app:cardBackgroundColor="@color/card_background"
-        android:focusable="true"
-        android:clickable="true"
-        android:background="@drawable/poster_item_background">
+        android:focusable="false"
+        android:clickable="false">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -30,8 +30,13 @@
                 android:id="@+id/iv_poster"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_video" />
+                android:scaleType="matrix"
+                android:src="@drawable/ic_video"
+                android:focusable="false"
+                android:duplicateParentState="true"
+                android:clickable="false"
+                android:background="@drawable/poster_image_border"
+                android:foreground="@drawable/poster_image_border" />
 
             <!-- 评分标签 -->
             <TextView

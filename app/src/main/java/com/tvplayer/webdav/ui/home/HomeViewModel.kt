@@ -9,7 +9,9 @@ import com.tvplayer.webdav.data.model.MediaCategory
 import com.tvplayer.webdav.data.model.MediaItem
 import com.tvplayer.webdav.data.model.MediaType
 import com.tvplayer.webdav.data.model.TVSeriesSummary
+import com.tvplayer.webdav.data.model.PlaybackState
 import com.tvplayer.webdav.data.storage.WebDAVServerStorage
+import com.tvplayer.webdav.data.storage.PlaybackStateManager
 import com.tvplayer.webdav.data.webdav.SimpleWebDAVClient
 import com.tvplayer.webdav.data.scanner.MediaScanner
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +28,8 @@ class HomeViewModel @Inject constructor(
     private val webdavClient: SimpleWebDAVClient,
     private val serverStorage: WebDAVServerStorage,
     private val mediaScanner: MediaScanner,
-    private val mediaCache: com.tvplayer.webdav.data.storage.MediaCache
+    private val mediaCache: com.tvplayer.webdav.data.storage.MediaCache,
+    private val playbackStateManager: PlaybackStateManager
 ) : ViewModel() {
 
     private val _categories = MutableLiveData<List<MediaCategory>>()
@@ -35,8 +38,8 @@ class HomeViewModel @Inject constructor(
     private val _recentlyAdded = MutableLiveData<List<MediaItem>>()
     val recentlyAdded: LiveData<List<MediaItem>> = _recentlyAdded
 
-    private val _continueWatching = MutableLiveData<List<MediaItem>>()
-    val continueWatching: LiveData<List<MediaItem>> = _continueWatching
+    private val _playbackHistory = MutableLiveData<List<MediaItem>>()
+    val playbackHistory: LiveData<List<MediaItem>> = _playbackHistory
 
     private val _movies = MutableLiveData<List<MediaItem>>()
     val movies: LiveData<List<MediaItem>> = _movies
@@ -56,9 +59,12 @@ class HomeViewModel @Inject constructor(
         _movies.value = emptyList()
         _tvShows.value = emptyList()
         _recentlyAdded.value = emptyList()
+        _playbackHistory.value = emptyList()
         mediaCache.movies().observeForever { _movies.postValue(it) }
         mediaCache.tvSeriesSummaries().observeForever { _tvShows.postValue(it) }
         mediaCache.recentlyAdded().observeForever { _recentlyAdded.postValue(it) }
+        // 加载播放历史
+        loadPlaybackHistory()
     }
 
     /**
@@ -220,21 +226,73 @@ class HomeViewModel @Inject constructor(
             )
         )
 
-        // 继续观看（有观看进度的内容）
-        val continueWatchingItems = sampleMovies.take(2).map { movie ->
-            movie.copy(
-                watchedProgress = 0.3f, // 观看了30%
-                lastWatchedTime = Date()
-            )
-        }
-
         // 最近添加（只包含电影，因为TV shows现在是不同的数据类型）
         val recentlyAddedItems = sampleMovies.take(4)
 
+        // 创建示例播放历史数据
+        createSamplePlaybackHistory(sampleMovies, sampleTVShows)
+
         _movies.value = sampleMovies
         _tvShows.value = sampleTVShows
-        _continueWatching.value = continueWatchingItems
         _recentlyAdded.value = recentlyAddedItems
+    }
+
+    /**
+     * 创建示例播放历史数据
+     */
+    private fun createSamplePlaybackHistory(sampleMovies: List<MediaItem>, sampleTVShows: List<TVSeriesSummary>) {
+        val currentTime = Date()
+        val oneHourAgo = Date(currentTime.time - 3600 * 1000)
+        val twoDaysAgo = Date(currentTime.time - 2 * 24 * 3600 * 1000)
+        val threeDaysAgo = Date(currentTime.time - 3 * 24 * 3600 * 1000)
+
+        // 为电影创建播放状态
+        val moviePlaybackStates = listOf(
+            PlaybackState(
+                seriesId = "movie_1", // 复仇者联盟：终局之战
+                currentSeasonNumber = 1,
+                currentEpisodeNumber = 1,
+                playbackProgress = 3600L, // 播放了1小时
+                totalDuration = 10800L, // 总长3小时
+                lastPlayedTimestamp = oneHourAgo
+            ),
+            PlaybackState(
+                seriesId = "movie_2", // 肖申克的救赎
+                currentSeasonNumber = 1,
+                currentEpisodeNumber = 1,
+                playbackProgress = 5400L, // 播放了1.5小时
+                totalDuration = 8400L, // 总长2.33小时
+                lastPlayedTimestamp = twoDaysAgo
+            )
+        )
+
+        // 为电视剧创建播放状态
+        val tvPlaybackStates = listOf(
+            PlaybackState(
+                seriesId = "tv_1396", // 绝命毒师
+                currentSeasonNumber = 1,
+                currentEpisodeNumber = 3,
+                playbackProgress = 1800L, // 播放了30分钟
+                totalDuration = 2700L, // 总长45分钟
+                lastPlayedTimestamp = currentTime
+            ),
+            PlaybackState(
+                seriesId = "movie_3", // 盗梦空间
+                currentSeasonNumber = 1,
+                currentEpisodeNumber = 1,
+                playbackProgress = 7200L, // 播放了2小时
+                totalDuration = 8880L, // 总长2.47小时
+                lastPlayedTimestamp = threeDaysAgo
+            )
+        )
+
+        // 保存播放状态到PlaybackStateManager
+        (moviePlaybackStates + tvPlaybackStates).forEach { playbackState ->
+            playbackStateManager.savePlaybackState(playbackState)
+        }
+
+        // 立即加载播放历史
+        loadPlaybackHistory()
     }
 
     /**
@@ -283,5 +341,85 @@ class HomeViewModel @Inject constructor(
      */
     fun clearError() {
         _error.value = null
+    }
+
+    /**
+     * 加载播放历史记录
+     */
+    fun loadPlaybackHistory() {
+        viewModelScope.launch {
+            try {
+                val playbackStates = playbackStateManager.getRecentlyPlayedSeries(20) // 获取最近20个播放记录
+                val historyItems = convertPlaybackStatesToMediaItems(playbackStates)
+                _playbackHistory.postValue(historyItems)
+            } catch (e: Exception) {
+                android.util.Log.e("HomeViewModel", "Error loading playback history", e)
+                _playbackHistory.postValue(emptyList())
+            }
+        }
+    }
+
+    /**
+     * 将播放状态转换为MediaItem列表
+     */
+    private fun convertPlaybackStatesToMediaItems(playbackStates: List<PlaybackState>): List<MediaItem> {
+        val allMediaItems = mediaCache.getItems()
+        val historyItems = mutableListOf<MediaItem>()
+
+        for (playbackState in playbackStates) {
+            val mediaItem = findMediaItemForPlaybackState(playbackState, allMediaItems)
+            if (mediaItem != null) {
+                // 创建带有播放进度的MediaItem副本
+                val historyItem = mediaItem.copy(
+                    watchedProgress = playbackState.getProgressPercentage(),
+                    lastWatchedTime = playbackState.lastPlayedTimestamp,
+                    isWatched = playbackState.isNearlyCompleted()
+                )
+                historyItems.add(historyItem)
+            }
+        }
+
+        return historyItems
+    }
+
+    /**
+     * 根据播放状态查找对应的MediaItem
+     */
+    private fun findMediaItemForPlaybackState(playbackState: PlaybackState, allMediaItems: List<MediaItem>): MediaItem? {
+        // 首先尝试通过seriesId匹配电视剧
+        val tvSeriesMatch = allMediaItems.find { mediaItem ->
+            mediaItem.seriesId == playbackState.seriesId &&
+            mediaItem.mediaType == MediaType.TV_EPISODE &&
+            mediaItem.seasonNumber == playbackState.currentSeasonNumber &&
+            mediaItem.episodeNumber == playbackState.currentEpisodeNumber
+        }
+
+        if (tvSeriesMatch != null) {
+            return tvSeriesMatch
+        }
+
+        // 如果没找到电视剧匹配，尝试通过文件路径匹配电影
+        val movieMatch = allMediaItems.find { mediaItem ->
+            mediaItem.id == playbackState.seriesId || // 电影使用文件路径作为seriesId
+            mediaItem.filePath == playbackState.seriesId
+        }
+
+        if (movieMatch != null) {
+            return movieMatch
+        }
+
+        // 如果还是没找到，尝试通过seriesId匹配电视剧系列的第一集
+        val seriesFirstEpisode = allMediaItems
+            .filter { it.seriesId == playbackState.seriesId && it.mediaType == MediaType.TV_EPISODE }
+            .minByOrNull { (it.seasonNumber ?: 1) * 1000 + (it.episodeNumber ?: 1) }
+
+        return seriesFirstEpisode
+    }
+
+    /**
+     * 刷新播放历史
+     */
+    fun refreshPlaybackHistory() {
+        loadPlaybackHistory()
     }
 }

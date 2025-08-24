@@ -2,7 +2,6 @@ package com.tvplayer.webdav.ui.home
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.OvershootInterpolator
@@ -16,10 +15,11 @@ import androidx.cardview.widget.CardView
  */
 object PosterFocusAnimator {
     
-    private const val SCALE_FOCUSED = 1.04f  // 减小缩放避免裁剪
-    private const val SCALE_NORMAL = 1.0f
-    private const val ANIMATION_DURATION = 400L
-    private const val STAGGER_DELAY = 50L  // 错开动画延迟
+    private const val SCALE_FOCUSED = 1.04f  // 获得焦点时放大8%
+    private const val SCALE_NORMAL = 1.0f   // 正常大小
+    private const val ANIMATION_DURATION = 30L  // 放大动画稍微慢一点，更平滑
+    private const val ANIMATION_DURATION_OUT = 30L  // 缩小动画快一点
+    private const val STAGGER_DELAY = 0L  // 减少延迟
     
     /**
      * 设置海报焦点动画
@@ -31,10 +31,39 @@ object PosterFocusAnimator {
         ratingBadge: TextView?,
         onFocusChange: ((Boolean) -> Unit)? = null
     ) {
+        val imageView = itemView.findViewById<ImageView>(com.tvplayer.webdav.R.id.iv_poster)
+
         itemView.setOnFocusChangeListener { _, hasFocus ->
+            // 使用程序化边框控制，不依赖drawable状态
+            setFocusBorder(imageView, hasFocus)
             animatePosterFocus(itemView, cardView, playButton, ratingBadge, hasFocus)
             onFocusChange?.invoke(hasFocus)
         }
+    }
+
+    /**
+     * 程序化设置焦点边框，完全控制显示状态
+     */
+    private fun setFocusBorder(imageView: ImageView?, hasFocus: Boolean) {
+        imageView?.let { iv ->
+            if (hasFocus) {
+                // 直接设置焦点边框drawable
+                iv.foreground = iv.context.getDrawable(com.tvplayer.webdav.R.drawable.poster_focus_border)
+            } else {
+                // 移除边框
+                iv.foreground = null
+            }
+
+            // 强制刷新
+            iv.invalidate()
+        }
+    }
+
+    /**
+     * 更新ImageView的焦点状态 - 使用程序化边框控制
+     */
+    private fun updateImageViewFocusState(imageView: ImageView?, hasFocus: Boolean) {
+        setFocusBorder(imageView, hasFocus)
     }
     
     /**
@@ -60,7 +89,7 @@ object PosterFocusAnimator {
     }
     
     /**
-     * 获得焦点动画
+     * 获得焦点动画 - 添加放大效果
      */
     private fun animateFocusIn(
         itemView: View,
@@ -68,7 +97,7 @@ object PosterFocusAnimator {
         playButton: ImageView?,
         ratingBadge: TextView?
     ) {
-        // 主容器缩放动画（移除阴影效果）
+        // 放大动画 - 从当前大小到目标大小
         val scaleX = ObjectAnimator.ofFloat(itemView, "scaleX", itemView.scaleX, SCALE_FOCUSED)
         val scaleY = ObjectAnimator.ofFloat(itemView, "scaleY", itemView.scaleY, SCALE_FOCUSED)
 
@@ -78,7 +107,7 @@ object PosterFocusAnimator {
         val mainAnimatorSet = AnimatorSet()
         mainAnimatorSet.playTogether(scaleX, scaleY, borderAlpha)
         mainAnimatorSet.duration = ANIMATION_DURATION
-        mainAnimatorSet.interpolator = OvershootInterpolator(0.15f)
+        mainAnimatorSet.interpolator = AccelerateDecelerateInterpolator()
         
         // 播放按钮动画 - 淡入 + 缩放
         playButton?.let { button ->
@@ -116,7 +145,7 @@ object PosterFocusAnimator {
     }
     
     /**
-     * 失去焦点动画
+     * 失去焦点动画 - 添加缩小效果
      */
     private fun animateFocusOut(
         itemView: View,
@@ -124,7 +153,7 @@ object PosterFocusAnimator {
         playButton: ImageView?,
         ratingBadge: TextView?
     ) {
-        // 主容器恢复动画（移除阴影效果）
+        // 缩小动画 - 从当前大小到正常大小
         val scaleX = ObjectAnimator.ofFloat(itemView, "scaleX", itemView.scaleX, SCALE_NORMAL)
         val scaleY = ObjectAnimator.ofFloat(itemView, "scaleY", itemView.scaleY, SCALE_NORMAL)
 
@@ -133,7 +162,7 @@ object PosterFocusAnimator {
 
         val mainAnimatorSet = AnimatorSet()
         mainAnimatorSet.playTogether(scaleX, scaleY, borderAlpha)
-        mainAnimatorSet.duration = ANIMATION_DURATION
+        mainAnimatorSet.duration = ANIMATION_DURATION_OUT  // 失去焦点动画更快
         mainAnimatorSet.interpolator = AccelerateDecelerateInterpolator()
         
         // 播放按钮动画 - 淡出
@@ -145,7 +174,7 @@ object PosterFocusAnimator {
                 
                 val buttonAnimatorSet = AnimatorSet()
                 buttonAnimatorSet.playTogether(fadeOut, buttonScale, buttonScaleY)
-                buttonAnimatorSet.duration = ANIMATION_DURATION / 2
+                buttonAnimatorSet.duration = ANIMATION_DURATION_OUT
                 buttonAnimatorSet.interpolator = AccelerateDecelerateInterpolator()
                 buttonAnimatorSet.start()
             }
@@ -159,7 +188,7 @@ object PosterFocusAnimator {
                 
                 val badgeAnimatorSet = AnimatorSet()
                 badgeAnimatorSet.playTogether(fadeOut, scaleOut)
-                badgeAnimatorSet.duration = ANIMATION_DURATION / 2
+                badgeAnimatorSet.duration = ANIMATION_DURATION_OUT
                 badgeAnimatorSet.interpolator = AccelerateDecelerateInterpolator()
                 badgeAnimatorSet.start()
             }
@@ -196,5 +225,116 @@ object PosterFocusAnimator {
         })
         
         animatorSet.start()
+    }
+    
+    /**
+     * 手动触发焦点状态同步（用于焦点恢复时）
+     */
+    fun triggerFocusStateSync(itemView: View, hasFocus: Boolean) {
+        val imageView = itemView.findViewById<ImageView>(com.tvplayer.webdav.R.id.iv_poster)
+
+        // 直接设置边框，不依赖系统状态
+        setFocusBorder(imageView, hasFocus)
+
+        // 同时设置View自身的焦点状态
+        if (hasFocus) {
+            itemView.isSelected = true
+            imageView?.isSelected = true
+        } else {
+            itemView.isSelected = false
+            imageView?.isSelected = false
+        }
+
+        // 触发父容器刷新
+        itemView.invalidate()
+        itemView.requestLayout()
+    }
+
+    /**
+     * 程序化触发完整的焦点恢复（包含动画效果）
+     * 用于从其他页面返回时恢复焦点状态
+     */
+    fun restoreFocusWithAnimation(
+        itemView: View,
+        cardView: CardView,
+        playButton: ImageView?,
+        ratingBadge: TextView?,
+        hasFocus: Boolean,
+        onFocusChange: ((Boolean) -> Unit)? = null
+    ) {
+        try {
+            // 首先同步焦点状态
+            triggerFocusStateSync(itemView, hasFocus)
+
+            // 如果需要显示焦点，执行动画
+            if (hasFocus) {
+                // 执行焦点动画
+                animatePosterFocus(itemView, cardView, playButton, ratingBadge, true)
+
+                // 触发焦点回调
+                onFocusChange?.invoke(true)
+
+                android.util.Log.d("PosterFocusAnimator", "Restored focus with animation for item")
+            }
+
+        } catch (e: Exception) {
+            android.util.Log.e("PosterFocusAnimator", "Error restoring focus with animation", e)
+        }
+    }
+
+    /**
+     * 为RecyclerView的特定位置恢复焦点
+     * 这是一个便捷方法，用于焦点状态管理器调用
+     */
+    fun restoreFocusAtPosition(
+        recyclerView: androidx.recyclerview.widget.RecyclerView,
+        position: Int,
+        onFocusChange: ((Boolean) -> Unit)? = null
+    ) {
+        try {
+            recyclerView.post {
+                val viewHolder = recyclerView.findViewHolderForAdapterPosition(position)
+                if (viewHolder != null) {
+                    val itemView = viewHolder.itemView
+                    val cardView = itemView.findViewById<CardView>(com.tvplayer.webdav.R.id.card_view)
+                    val ratingBadge = itemView.findViewById<TextView>(com.tvplayer.webdav.R.id.tv_rating)
+
+                    if (cardView != null) {
+                        restoreFocusWithAnimation(itemView, cardView, null, ratingBadge, true, onFocusChange)
+                    } else {
+                        // 备用方案：只同步状态
+                        triggerFocusStateSync(itemView, true)
+                        onFocusChange?.invoke(true)
+                    }
+
+                    android.util.Log.d("PosterFocusAnimator", "Restored focus at position $position")
+                } else {
+                    android.util.Log.w("PosterFocusAnimator", "ViewHolder not found for position $position")
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("PosterFocusAnimator", "Error restoring focus at position $position", e)
+        }
+    }
+
+    /**
+     * 确保点击后焦点状态保持
+     * 在点击事件后调用，确保白色边框不会丢失
+     */
+    fun ensureFocusStateAfterClick(itemView: View) {
+        val imageView = itemView.findViewById<ImageView>(com.tvplayer.webdav.R.id.iv_poster)
+
+        // 立即强制设置边框，不等待延迟
+        setFocusBorder(imageView, true)
+
+        // 确保View状态正确
+        itemView.isSelected = true
+        imageView?.isSelected = true
+
+        // 再次延迟确认，防止系统覆盖
+        itemView.postDelayed({
+            setFocusBorder(imageView, true)
+            android.util.Log.d("PosterFocusAnimator", "Force ensured focus border after click")
+        }, 50)
     }
 }

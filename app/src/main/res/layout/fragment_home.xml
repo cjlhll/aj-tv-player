@@ -10,13 +10,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
-        android:alpha="0.0" />
+        android:alpha="0.0"
+        android:visibility="gone" />
 
     <!-- 顶部到内容的渐变遮罩，保证文字可读性 -->
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/backdrop_gradient" />
+        android:background="@drawable/backdrop_gradient"
+        android:visibility="gone" />
 
     <!-- 内容层 -->
     <ScrollView
@@ -82,7 +84,9 @@
 
             </LinearLayout>
 
-            <!-- 继续观看标题 -->
+
+
+            <!-- 播放历史标题 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -94,13 +98,13 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="继续观看"
+                    android:text="播放历史"
                     android:textSize="18sp"
                     android:textColor="@color/text_primary"
                     android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/tv_all_continue"
+                    android:id="@+id/tv_all_history"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="全部"
@@ -115,13 +119,14 @@
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_continue_watching"
+                android:id="@+id/rv_playback_history"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
                 android:clipToPadding="false"
                 android:paddingStart="0dp"
-                android:paddingEnd="24dp" />
+                android:paddingEnd="24dp"
+                android:nestedScrollingEnabled="false" />
 
             <!-- 电影标题 -->
             <LinearLayout
