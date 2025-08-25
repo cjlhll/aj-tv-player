@@ -14,12 +14,12 @@
 ### 技术栈
 - **开发语言**: Kotlin
 - **UI框架**: Android TV Leanback Support Library
-- **播放器**: ExoPlayer（待集成）
+- **播放器**: GSYVideoPlayer
 - **网络库**: OkHttp + Retrofit
 - **WebDAV**: Sardine库
 - **架构模式**: MVVM + Repository Pattern
 - **依赖注入**: Hilt
-- **数据存储**: Room Database（待集成）
+- **数据存储**: Room Database
 
 ## 项目结构
 
@@ -53,7 +53,7 @@ app/
 - [x] 基础架构搭建（MVVM + Hilt）
 - [x] WebDAV连接模块
 - [ ] 文件浏览器UI
-- [ ] 视频播放器集成
+- [x] 视频播放器集成
 
 ### 第三阶段：功能完善
 - [ ] 播放器UI优化
